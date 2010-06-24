@@ -1,0 +1,135 @@
+2008-07-01:
+* Fixed IRCBot to be part of the net/yail namespace so you can subclass
+  without copying the file into your own project
+* Fixed IRCBot to actually be usable (fixed require)
+
+2008-07-02:
+* Minor documentation fixes
+* Args aren't automatically duped for all handlers anymore, as that caused
+  output handling to break (args come in, go to handler, get duped, get
+  filtered, handler chain ends, required YAIL output methods finish with the
+  original, unfiltered args)
+* All output APIs now dup the args at the top level to deal with above issue
+* Added more details to Rakefile - homepage and rubyforge project
+* Bumped to version 1.0.2 - will release gem only after a little testing,
+  though
+
+2008-07-03:
+* IRCBot can now auto-join multiple channels, and has a built-in uptime
+  system.
+* Net::YAIL now has handling for INVITE messages
+* Added fully working logger bot for a solid example
+* Since changes are more extensive than a minor release, bumping to 1.1.1
+
+2008-07-07:
+* The included logger example bot no longer crashes on incoming "private"
+  message
+* Logger example also has an example of using an outgoing handler to
+  centralize a list of channel passwords - all join messages get a password
+  tacked on if the central password list has one for the given channel
+* Obviously the above addition required support for joining password-protected
+  channels, so YAY!
+
+2008-07-17:
+* Fixed logger's handler to not call the channel logging code on private message
+* Figured it's about time for a new gem, 1.2.0.  Change to join handler breaks
+  existing code in a minor way - don't forget to fix your handlers!
+
+2008-07-22:
+* Added a bunch of new output APIs and corresponding outgoing handlers
+* Auto-support for server password with new arg to constructor
+* Moved TODO stuff into a separate file outside the gem's evil influence!
+
+2008-07-??:
+* Fixed up a bunch of code to add a bit more stability for dead sockets and
+  such.
+* IRCBot can now properly reconnect when the socket does end up dying.
+* Bumped version to 1.2.1.  Probably a good time to release another gem.
+
+2008-08-20:
+* stop_listening now sets @dead_socket to true
+* stop_listening now *works* when called from a thread it attempts to destroy
+
+2008-08-21:
+* Default handlers are now properly *appended* to the final handler list
+  instead of *prepended* before anything is on the list.
+* Added append_handler - functions just like prepend_handler, but pushes the
+  procs to the end of the array instead of the beginning.
+* For masochists, there's a new get_raw_handler_array_object method for direct
+  manipulation of a given handler's array of procs.
+* Converted all "while true" loops to "loop do"
+* IRCBot should be a bit safer to use
+
+2009-04-17:
+* Moved 2.0 work into a branch.  Too many 1.2.1 bugs.
+* Found that a lot of the 1.2.2 bugs the prevented a release may be due to
+  code changing in 2.0, so 1.2.2 is officially never going to be released
+* Remove /i from regexes for determining incoming message type.  Stupid me.
+* Rearranged regexes a bit to avoid a really stupid bug (#24716) where
+  numerics formatted just right would cause them to match the wrong handler.
+* Moved PING closer to the top of the regex list to ensure its reply is fast.
+* Added a global handler option for :incoming_any.  GREAT for debugging, btw.
+* Updated to 1.2.3.  That's right, 1.2.3, even though many 1.2.2 features
+  are having to be skipped.  DEAL.
+
+2009-04-21 - working on 2.0 again:
+* Renamed "handle" to "dispatch" - makes a bit more sense, and could allow the
+  use of a new handle() method that helps with backward-compatibility.
+* Renamed args from "event" to "type" when they represented event types.  The
+  new dispatch() method (was the old handle() method) is now fairly event-ready.
+* A tad more work on the event object.  Getting closer....
+
+2009-04-22 - 2.0:
+* Minor bug fix to incoming handler selection
+* More work on the event classes - realized outgoing events are in fact
+  necessary, and legacy event support is probably going to have to be lost in
+  2.0.
+
+2009-04-24:
+* Discovered the handler regex "fix" that created 1.2.3 caused other bugs in
+  the same general area (regexes stolen from IRCSocket are just bad bad bad)
+* Built a new module in the trunk to parse incoming messages based on the BNF-
+  like grammar in the RFC.  Once in (1.2.4, should be < 1 week), should make
+  parsing of incoming text MILES better than it is today.
+* Added a test to ensure the new message parsing does what it should.
+
+2009-04-27:
+* Working on getting new message parser to work instead of previous giant regex horror
+* This may break backward compatibility on modes.  They were handled VERY incorrectly previously....
+* Mode reporting method modified in default_events.rb
+
+2009-04-28:
+* Fixed modes to be backward-compatible again, but...
+* New numeric handling isn't quite backward compatible - previously if a numeric had
+  the "final" param with a colon, that was part of the text you got.  The new
+  message parser knows about how colons delimit final parameters, so this is
+  stripped automatically now.  See the test for message parser for an example.
+* Version is now 1.3.0, since backward compatibility is going to be potentially (slightly) broken.
+* New handling logic fully based on a real parsing system.  Due to this system's
+  shortcomings, however, it's pretty hacky here.  2.0 will be better.
+* Fixed :incoming_any to actually work.
+  * Note: :incoming_miscellany shouldn't be used to handle things the lib
+    doesn't inherently support now that :incoming_any is working.  This will
+    ensure that you can do your own funky parsing of events without suddenly
+    losing functionality when I add new handling to the core.  If you use
+    :incoming_miscellany, use it to report errors or something, not for core
+    logic!
+* More varied tests of parser to ensure real IRC messages are parsing
+* Tested this stuff with my bot a bit, and will continue to do so, but...
+* TIME FOR A NEW GEM!
+
+2009-05-11:
+* Found bug with my implementation of nickname pattern matching, fixed and tested
+* Found bug with my implementation of parameter matching, fixed and tested
+* Version bump to 1.3.1
+* Gem?  Gem.
+
+2009-07-29:
+* Found bug with nickname pattern matching when people use characters like "|" which aren't allowed by the RFC, but are still allowed by some servers.  Grumble, grumble.
+
+2009-11-11:
+* Fixed bug that prevented ANY bot from working unless the ":incoming_any" handler was registered.  Very stupid of me.
+
+2010-06-18:
+* Fixed bug with nil arguments - maybe a Ruby 1.9 issue?  Never ran into it before....
+* Fixed bug with multi-word topic changes

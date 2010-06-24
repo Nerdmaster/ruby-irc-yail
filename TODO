@@ -1,0 +1,61 @@
+==In progress
+
+* Use the new MessageParser in 2.0 now that it's working.  Port over any
+  other changes as necessary (diff 1.2.1 with 1.3.0)
+  * New fix to message parser's nick-matching (allowing pipes) needs to be
+    ported, but isn't yet in a tag.
+* Build Event struct (OpenStruct maybe) to store all the pieces of data
+  an event handler can use.  Allows for easier extensibility.  Incoming
+  messages, for instance, are PMs if "target" is current nick - would be
+  much nicer to just have a "is_pm" flag, but sending yet another arg to
+  a billion handlers?
+  * Make this backward-compatible if remotely possible.  If the bot is
+    created with some special argument, have it send handlers the basic arg
+    list as before, otherwise send the event.
+* Restructure internal handlers - I think some of the duped event handling
+  is because we're adding handlers in places we shouldn't be.  We should
+  have a set hash of forced events that happen after any user event, but
+  regardless of user claiming they're done, and a set hash of defaults that
+  happen at the end of the chain only if the events weren't handled.
+  * Another benefit of this is that outgoing forced events become real events
+    that just take the user-modified text (if the user handles the event for
+    filtering) and do their job.  The hard-coded system right now pretty much
+    sucks.
+
+==High priority
+
+Stuff to do soon
+
+* Make reporting more of a real log (use Ruby's Logger class, even), and not
+  based on event chain.  Most current reporting would be of "INFO" level,
+  with the "if @loud" type of options being "DEBUG".  This gives users of the
+  library a whole lot more control.  Default will still be stdout, and logging
+  will be set to ERROR on @silent option, INFO with no specific option, and
+  DEBUG on @loud option.
+  * This magically makes the handlers one step closer to "real" handlers, as
+    you aren't returning true and false depending on whether you want logging.
+
+==Low priority
+
+Stuff that should happen for the most part, but needs to wait until above
+stuff is done.
+
+* Eventually build an event object for outgoing event handlers.  This may not
+  ever really be necessary, as outgoing events have very specific arguments
+  and the handling of events isn't nearly as commonplace as handling incoming
+  events.
+* New API for handlers - keep old because it's still useful
+  * said_xxx {|args| do_stuff} => same as prepend_handler(:outgoing_xxx)
+  * heard_xxx {|args| do_stuff} => same as prepend_handler(:incoming_xxx)
+* CTCP formatting:
+  * Color is ^C<fore>[,<back>]
+  * Bold is ^B to toggle on or off
+  * See silverplatter - appears to have all formatting options I'd want.
+    Yay theft!
+  * Use *optional* output filtering to allow pipe-commands, such as
+    "|2,3|BFoo|PBar" => bolded blue on green "Foo", followed by plain "Bar"
+* CTCP commands (VERSION, PING, etc): http://www.invlogic.com/irc/ctcp.html
+* Figure a nice way to do better throttling for output.  If there are enough
+  channels or people bugging a bot, it could spam itself off the network right
+  now due to the "send one message per second... to every damn thing that has
+  something in its queue" rule.
