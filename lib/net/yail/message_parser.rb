@@ -59,6 +59,7 @@ class MessageParser
       arglist = matches[6].sub(/^ +/, '')
       (middle_args, trailing_arg) = arglist.split(/ *:/, 2)
       @params.push(middle_args.split(/ +/), trailing_arg)
+      @params.compact!
       @params.flatten!
     end
   end
