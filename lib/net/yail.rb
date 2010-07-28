@@ -230,7 +230,7 @@ class YAIL
   include Net::IRCEvents::Defaults
   include Net::IRCOutputAPI
 
-  VERSION = '1.3.3'
+  VERSION = '1.3.4'
 
   attr_reader(
     :me,                # Nickname on the IRC server
