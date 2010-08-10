@@ -125,11 +125,11 @@ module Defaults
           nick nextnick
         else
           report '*** All nicknames in use. ***'
-          quit 'All nicknames in use.'
+          raise ArgumentError.new("All nicknames in use")
         end
       rescue
         report '*** Nickname selection error. ***'
-        quit 'Nickname selection error.'
+        raise
       end
     end
   end
