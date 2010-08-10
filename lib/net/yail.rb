@@ -294,6 +294,7 @@ class YAIL
     rescue StandardError => boom
       report "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
       @dead_socket = true
+      raise
     end
 
     # Shared resources for threads to try and coordinate....  I know very
@@ -357,7 +358,8 @@ class YAIL
       line = @socket.gets
     rescue StandardError => boom
       @dead_socket = true
-      report "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}"
+      report "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}" if @loud
+      raise
     end
 
     # If we somehow got no data here, the socket is closed.  Run away!!!
