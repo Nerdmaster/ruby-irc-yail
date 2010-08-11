@@ -133,3 +133,12 @@
 2010-06-18:
 * Fixed bug with nil arguments - maybe a Ruby 1.9 issue?  Never ran into it before....
 * Fixed bug with multi-word topic changes
+
+2010-06-25:
+* Migrating broken svn branch to git.  Given my git skills, that'll probably be broken, too....
+
+2010-06-28:
+* More work on fixing 2.0 branch
+
+---> From now on I think I'm going to just use the git logs to deal with any change logs I need.
+Maybe I'll use this for major releases, but not every little change.
