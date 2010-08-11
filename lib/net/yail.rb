@@ -43,7 +43,7 @@ module Net
 #
 # Current list of incoming events and the parameters sent to the handler:
 # * :incoming_any(raw) - "global" handler that catches all events and may
-#   modify their data as necessary before the real handler is hit.  This
+#   modify their data as necessary before the real handler is hit.  This should
 #   only be used in cases where it's necessary to grab a lot of events that
 #   also need to be processed elsewhere, such as doing input filtering for
 #   all events that have a "text" element.  Note that returning true from
