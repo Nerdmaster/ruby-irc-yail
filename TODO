@@ -43,6 +43,7 @@ Stuff to do soon
   DEBUG on @loud option.
   * This magically makes the handlers one step closer to "real" handlers, as
     you aren't returning true and false depending on whether you want logging.
+* Rename "handle" to "dispatch?"
 
 ==Low priority
 
