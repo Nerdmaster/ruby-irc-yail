@@ -1,3 +1,12 @@
+Pull in 2.0 stuff as much as possible into 1.3.x - we can do a lot of the event object items (without
+actually changing the API) to get prepared.  Need to make things a lot closer so the two can live together
+better.
+
+Merge in any differences that are needed from TODO.patch!
+
+
+
+
 ==In progress
 
 * Use the new MessageParser in 2.0 now that it's working.  Port over any
