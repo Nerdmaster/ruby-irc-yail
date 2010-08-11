@@ -9,8 +9,7 @@ spec = Gem::Specification.new do |s|
   s.email             = "yail<at>nerdbucket dot com"
   s.summary           = "Yet Another IRC Library: wrapper for IRC communications in Ruby."
   s.files             = FileList[
-                          'examples/logger/*', 'lib/net/*.rb',
-                          'lib/net/yail/*', 'test/*.rb'
+                          'examples/logger/*', 'lib/net/*.rb', 'lib/net/yail/*', 'test/*.rb'
                         ].to_a
   s.homepage          = 'http://ruby-irc-yail.nerdbucket.com/'
   s.rubyforge_project = 'net-yail'
