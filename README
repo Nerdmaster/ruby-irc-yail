@@ -1,6 +1,6 @@
-Rubyforge page: http://rubyforge.org/projects/ruby-irc-yail
+github page: http://github.com/Nerdmaster/ruby-irc-yail
 
-*Want to jump straight to the examples instead of reading this lame "about the project" doc?  Just click on Net::YAIL !*
+Latest documentation is always at http://ruby-irc-yail.nerdbucket.com/
 
 Net::YAIL is a library built for dealing with IRC communications in Ruby.
 This is a project I've been building for about three years, based
@@ -18,7 +18,38 @@ far better than this thing will, but the general design I built here has
 just felt more natural to me than the other libraries I've looked at since
 I started my project.
 
-Features of YAIL:
+=Example Usage
+
+For the nitty-gritty, you can see all this stuff in the Net::YAIL page, as
+well as more complete documentation about the system.  For a complete bot,
+check out the IRCBot source code.  Below is just a very simple example:
+
+    require 'rubygems'
+    require 'net/yail'
+
+    irc = Net::YAIL.new(
+      :address    => 'irc.someplace.co.uk',
+      :username   => 'Frakking Bot',
+      :realname   => 'John Botfrakker',
+      :nicknames  => ['bot1', 'bot2', 'bot3']
+    )
+
+    irc.prepend_handler :incoming_welcome, proc {|text, args|
+      irc.join('#foo')
+      return false
+    }
+
+    irc.start_listening
+    while irc.dead_socket == false
+      # Avoid major CPU overuse by taking a very short nap
+      sleep 0.05
+    end
+
+Now we've built a simple IRC listener that will connect to a (probably
+invalid) network, identify itself, and sit around waiting for the welcome
+message.  After this has occurred, we join a channel and return false.
+
+=Features of YAIL:
 
 * Allows event handlers to be specified very easily for all known IRC events,
   and except in a few rare cases one can choose to override the default
