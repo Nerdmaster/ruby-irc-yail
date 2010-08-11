@@ -9,6 +9,9 @@ require 'net/yail/magic_events'
 require 'net/yail/default_events'
 require 'net/yail/output_api'
 
+# This tells us our version info.  Probably not necessary in here, but it makes me happy.
+require 'yail-version'
+
 # Finally, a real class to include!
 require 'net/yail/message_parser.rb'
 
@@ -229,8 +232,6 @@ class YAIL
   include Net::IRCEvents::Magic
   include Net::IRCEvents::Defaults
   include Net::IRCOutputAPI
-
-  VERSION = '1.3.5'
 
   attr_reader(
     :me,                # Nickname on the IRC server
