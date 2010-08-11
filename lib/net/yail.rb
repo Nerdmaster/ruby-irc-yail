@@ -392,7 +392,7 @@ class YAIL
   # This should be called from a thread only!  Does nothing but listens
   # forever for incoming data, and calling handlers due to this listening
   def io_loop
-    while true
+    loop do
       # if no data is coming in, don't block the socket!
       read_incoming_data if Kernel.select([@socket], nil, nil, 0)
 
@@ -407,7 +407,7 @@ class YAIL
   # whenever the @input_buffer var has any.
   def process_input_loop
     lines = nil
-    while true
+    loop do
       # Only synchronize long enough to copy and clear the input buffer.
       @input_buffer_mutex.synchronize do
         lines = @input_buffer.dup
@@ -466,7 +466,7 @@ class YAIL
   # Our final thread loop - grabs the first privmsg for each target and
   # sends it on its way.
   def process_privmsg_loop
-    while true
+    loop do
       check_privmsg_output if @next_message_time <= Time.now && !@privmsg_buffer.empty?
 
       sleep 0.05
