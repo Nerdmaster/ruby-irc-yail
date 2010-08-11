@@ -341,13 +341,22 @@ class YAIL
   # regarding threads.  Please help me if you know how to make this system
   # better.  DEAR LORD HELP ME IF YOU CAN!
   def stop_listening
-    # Kill all threads if they're really threads
-    [@ioloop_thread, @input_processor, @privmsg_processor].each {|thread| thread.terminate if Thread === thread}
+    return unless Thread === @ioloop_thread
 
-    # Just for safety, set everything to nil
-    @ioloop_thread = nil
-    @input_processor = nil
-    @privmsg_processor = nil
+    # Do thread-ending in a new thread or else we're liable to kill the
+    # thread that's called this method
+    Thread.new do
+      # Kill all threads if they're really threads
+      [@ioloop_thread, @input_processor, @privmsg_processor].each {|thread| thread.terminate if Thread === thread}
+
+      @socket.close
+      @socket = nil
+      @dead_socket = true
+
+      @ioloop_thread = nil
+      @input_processor = nil
+      @privmsg_processor = nil
+    end
   end
 
   private
