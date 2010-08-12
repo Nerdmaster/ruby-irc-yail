@@ -1,38 +1,39 @@
-Pull in 2.0 stuff as much as possible into 1.3.x - we can do a lot of the event object items (without
-actually changing the API) to get prepared.  Need to make things a lot closer so the two can live together
-better.
-
-Merge in any differences that are needed from TODO.patch!
-
-
-
-
 ==High priority
 
 Stuff to do soon
 
-* Restructure events to have a forced before- and after-event handler list.  When an event happens,
-  first run all before-event handlers, then normal handlers, then after-event handlers.
 * Get YAIL using Event class for parsing all data.  First step toward passing around the event as
   an object is to use it for parsing....
-* Get YAIL set up to use Event parent for all user handlers (before/after handlers must be exact
-  since they'll only be internal handlers) when user doesn't have a handler for low-level event
-  (:incoming_act => :incoming_ctcp => :incoming_msg, for instance)
-* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
-  chain.  Post-event handlers would be okay if they were all registered in an optional library the
-  user has to explicitly opt for.
 * Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
   reporting would be of "INFO" level, with the "if @loud" type of options being "DEBUG".  This
   gives users of the library a whole lot more control.  Default will still be stdout, and logging
   will be set to ERROR on @silent option, INFO with no specific option, and DEBUG on @loud option.
-  * This magically makes the handlers one step closer to "real" handlers, as you aren't returning
-    true and false depending on whether you want logging.
-* Rename "handle" to "dispatch"?
+
+==Version 2.0
+
+When ready to change the API...
+
+* Pass around events instead of various arguments for handlers
+* Restructure events to have before- and after-event filters that happen around event handler, and
+  (generally) don't mess with the event handler.
+  * Event happens:
+    * Find before filters for event, then event's parent, then parent's parent, etc.  If any filter
+      handles the event, end here.  Filters should ALMOST NEVER do this, as it kills handlers!
+    * Find handlers for event, parent, parent-parent.  Run until one handles the event.  Handlers
+      should return true to indicate they've done their job, so handling :ctcp should mean your
+      :privmsg handler isn't going to re-handle the event!
+    * Find after filters for event, parent, parent-parent.  Run all.
+  * prepend_handler deprecated, calls add_handler instead.
+  * Provide add_before_filter, add_after_filter, add_handler - no need to prepend anything anymore
+    since filtering will allow for reporting and such as necessary without handler clutter.
+  * Rename "handle" method to "dispatch" - makes more sense with this model
+* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
+  chain.  Post-event filters would be okay if they were all registered in an optional library the
+  user has to explicitly opt for.
 
 ==Low priority
 
-Stuff that should happen for the most part, but needs to wait until above
-stuff is done.
+Someday....
 
 * Fix events to give more useful output for :incoming_mode events - at the least, parse out the
   various targets as some kind of hash.  Very complex mode-parsing may be necessary.
