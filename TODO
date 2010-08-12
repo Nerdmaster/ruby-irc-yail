@@ -7,53 +7,52 @@ Merge in any differences that are needed from TODO.patch!
 
 
 
-==In progress
-
-* Use the new MessageParser in 2.0 now that it's working.  Port over any
-  other changes as necessary (diff 1.2.1 with 1.3.0)
-  * New fix to message parser's nick-matching (allowing pipes) needs to be
-    ported, but isn't yet in a tag.
-* Build Event struct (OpenStruct maybe) to store all the pieces of data
-  an event handler can use.  Allows for easier extensibility.  Incoming
-  messages, for instance, are PMs if "target" is current nick - would be
-  much nicer to just have a "is_pm" flag, but sending yet another arg to
-  a billion handlers?
-  * Make this backward-compatible if remotely possible.  If the bot is
-    created with some special argument, have it send handlers the basic arg
-    list as before, otherwise send the event.
-* Restructure internal handlers - I think some of the duped event handling
-  is because we're adding handlers in places we shouldn't be.  We should
-  have a set hash of forced events that happen after any user event, but
-  regardless of user claiming they're done, and a set hash of defaults that
-  happen at the end of the chain only if the events weren't handled.
-  * Another benefit of this is that outgoing forced events become real events
-    that just take the user-modified text (if the user handles the event for
-    filtering) and do their job.  The hard-coded system right now pretty much
-    sucks.
-
 ==High priority
 
 Stuff to do soon
 
-* Make reporting more of a real log (use Ruby's Logger class, even), and not
-  based on event chain.  Most current reporting would be of "INFO" level,
-  with the "if @loud" type of options being "DEBUG".  This gives users of the
-  library a whole lot more control.  Default will still be stdout, and logging
-  will be set to ERROR on @silent option, INFO with no specific option, and
-  DEBUG on @loud option.
-  * This magically makes the handlers one step closer to "real" handlers, as
-    you aren't returning true and false depending on whether you want logging.
-* Rename "handle" to "dispatch?"
+* Restructure events to have a forced before- and after-event handler list.  When an event happens,
+  first run all before-event handlers, then normal handlers, then after-event handlers.
+* Get YAIL using Event class for parsing all data.  First step toward passing around the event as
+  an object is to use it for parsing....
+* Get YAIL set up to use Event parent for all user handlers (before/after handlers must be exact
+  since they'll only be internal handlers) when user doesn't have a handler for low-level event
+  (:incoming_act => :incoming_ctcp => :incoming_msg, for instance)
+* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
+  chain.  Post-event handlers would be okay if they were all registered in an optional library the
+  user has to explicitly opt for.
+* Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
+  reporting would be of "INFO" level, with the "if @loud" type of options being "DEBUG".  This
+  gives users of the library a whole lot more control.  Default will still be stdout, and logging
+  will be set to ERROR on @silent option, INFO with no specific option, and DEBUG on @loud option.
+  * This magically makes the handlers one step closer to "real" handlers, as you aren't returning
+    true and false depending on whether you want logging.
+* Rename "handle" to "dispatch"?
 
 ==Low priority
 
 Stuff that should happen for the most part, but needs to wait until above
 stuff is done.
 
+* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
+  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
+  For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
+  * User is banning Towelie!*@*
+  * User is setting "+i" to #bots
+  * User is giving Doogles +v
+  * User is setting channel key to "foo"
+  * User is setting "-m" on #bots
+  * User is taking away Towelie's voice (-v)
 * Eventually build an event object for outgoing event handlers.  This may not
   ever really be necessary, as outgoing events have very specific arguments
   and the handling of events isn't nearly as commonplace as handling incoming
   events.
+* Allow multiple targets / hostmask / etc in outgoing PRIVMSG and NOTICE
+* Allow incoming PRIVMSG to have multiple parts - :actor PRIVMSG victim :Hello there, sir!\001USERINFO\001
+  * Allow IncomingEvent.parse to actually return multiple events?  Would help with modes, too.
+  * Add special handlers for some of this stuff so it's not up to user to parse.
+    :incoming_userinfo, :incoming_version, :outgoing_userinfo, etc.
+* Allow for CTCP quoting/dequoting...?  Don't know much about this - read up!
 * New API for handlers - keep old because it's still useful
   * said_xxx {|args| do_stuff} => same as prepend_handler(:outgoing_xxx)
   * heard_xxx {|args| do_stuff} => same as prepend_handler(:incoming_xxx)
