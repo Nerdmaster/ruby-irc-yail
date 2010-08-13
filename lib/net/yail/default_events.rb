@@ -114,6 +114,9 @@ module Defaults
   # user or try again in 20 minutes or something.  Note that we only fail
   # when the adapter hasn't gotten logged in yet - an attempt at changing
   # nick after registration (welcome message) just generates a report.
+  #
+  # TODO: This should really not even be here.  Client should have full control over whether or not
+  # they want this.  Base IRC bot class should have this, but not the core YAIL lib.
   def _nicknameinuse(text, args)
     text =~ /^(\S+)/
     report "Nickname #{$1} is already in use."
@@ -153,6 +156,8 @@ module Defaults
   end
 
   # Names line
+  #
+  # TODO: Either store this data silently or ditch this code - this verbosity doesn't belong in a core lib
   def _namreply(text, args)
     text =~ /^(@|\*|=) (\S+) :?(.+)$/
     channeltype = {'@' => 'Secret', '*' => 'Private', '=' => 'Normal'}[$1]
