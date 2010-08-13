@@ -2,7 +2,7 @@
 require File.dirname(__FILE__) + '/net_yail'
 require 'test/unit'
 
-class MessageParserText < Test::Unit::TestCase
+class MessageParserTest < Test::Unit::TestCase
   # Very simple parsing of easy strings
   def test_parse_basic
     # Basic test of privmsg-type command
@@ -26,6 +26,15 @@ class MessageParserText < Test::Unit::TestCase
     assert_equal 'arg2', msg.params[1]
     assert_equal 'final :trailing :arg, --fd9823', msg.params[2]
 
+    # Server command of some type - no actual final arg
+    msg = Net::YAIL::MessageParser.new(':nerdbucket.com SERVERCOMMAND arg1:finaltrailingarg')
+    assert_equal 'nerdbucket.com', msg.servername
+    assert_nil msg.user
+    assert_nil msg.nick
+    assert_nil msg.host
+    assert_equal 'nerdbucket.com', msg.prefix
+    assert_equal 'arg1:finaltrailingarg', msg.params[0]
+
     # WTF?  Well, IRC spec says it's valid
     msg = Net::YAIL::MessageParser.new('MAGICFUNKYFRESHCMD arg1 arg2')
     assert_nil msg.servername
@@ -34,11 +43,11 @@ class MessageParserText < Test::Unit::TestCase
     assert_equal 'arg2', msg.params[1]
 
     # Action
-    msg = Net::YAIL::MessageParser.new(':Nerdmaster!jeremy@nerdbucket.com PRIVMSG #bottest :\001ACTION gives Towelie a joint\001')
+    msg = Net::YAIL::MessageParser.new(":Nerdmaster!jeremy@nerdbucket.com PRIVMSG #bottest :\001ACTION gives Towelie a joint\001")
     assert_equal 'Nerdmaster', msg.nick
     assert_equal 'PRIVMSG', msg.command
     assert_equal '#bottest', msg.params.first
-    assert_equal '\001ACTION gives Towelie a joint\001', msg.params.last
+    assert_equal "\001ACTION gives Towelie a joint\001", msg.params.last
 
     # Bot sets mode
     msg = Net::YAIL::MessageParser.new(':Towelie!~x2e521146@towelie.foo.bar MODE Towelie :+i')
