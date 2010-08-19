@@ -2,6 +2,11 @@
 
 Stuff to do soon
 
+* Get Event class working with all IRC messages
+  * Maybe rename from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
+    that actually describes protocol and originator.  Then add CustomEvent for things like
+    :irc_loop.
+    * Type also set to :incoming_ and :outgoing_ - change this, too?
 * Get YAIL using Event class for parsing all data.  First step toward passing around the event as
   an object is to use it for parsing....
 * Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
