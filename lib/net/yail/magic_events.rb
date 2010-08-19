@@ -42,7 +42,7 @@ module Magic
   def magic_nick(fullactor, actor, nickname)
     # Reset name if it's me
     if actor.downcase == @me.downcase
-      @me = nickname
+      @me = nickname.dup
     end
 
     # Allow user-defined events (and/or reporting)
