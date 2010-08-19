@@ -1,3 +1,6 @@
+# Net::YAIL's solution to the amazing lack of *useful* IRC message parsers.  So far as I know,
+# this will parse any message coming from an RFC-compliant IRC server.
+
 module Net
 class YAIL
 
