@@ -2,11 +2,11 @@
 
 Stuff to do soon
 
-* Get Event class working with all IRC messages
-  * Maybe rename from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
-    that actually describes protocol and originator.  Then add CustomEvent for things like
-    :irc_loop.
-    * Type also set to :incoming_ and :outgoing_ - change this, too?
+* Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
+  that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
+  * Type also set to :incoming_ and :outgoing_ - change this, too?
+    * Type is probably okay - backward-compatibility is FAR easier if left alone, and :incoming_xxx
+      can happen with any protocol, especially things like messages, joins, etc.
 * Get YAIL using Event class for parsing all data.  First step toward passing around the event as
   an object is to use it for parsing....
 * Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
@@ -14,11 +14,16 @@ Stuff to do soon
   gives users of the library a whole lot more control.  Default will still be stdout, and logging
   will be set to ERROR on @silent option, INFO with no specific option, and DEBUG on @loud option.
 
-==Version 2.0
+==Version 1.4
 
-When ready to change the API...
+Some API changes, but nothing likely to break compatibility
 
-* Pass around events instead of various arguments for handlers
+* Build an event object for outgoing event handlers.  This may not
+  ever really be necessary, as outgoing events have very specific arguments
+  and the handling of events isn't nearly as commonplace as handling incoming
+  events.
+  * Needs to be done anyway - deprecating the arg-passing system requires that *all* events have
+    some object behind them.
 * Restructure events to have before- and after-event filters that happen around event handler, and
   (generally) don't mess with the event handler.
   * Event happens:
@@ -27,14 +32,24 @@ When ready to change the API...
     * Find handlers for event, parent, parent-parent.  Run until one handles the event.  Handlers
       should return true to indicate they've done their job, so handling :ctcp should mean your
       :privmsg handler isn't going to re-handle the event!
-    * Find after filters for event, parent, parent-parent.  Run all.
-  * prepend_handler deprecated, calls add_handler instead.
+    * Find after filters for event, parent, parent-parent.  Run all.  After filters are for things
+      like reporting/logging/etc.  None can "break the chain".
   * Provide add_before_filter, add_after_filter, add_handler - no need to prepend anything anymore
     since filtering will allow for reporting and such as necessary without handler clutter.
   * Rename "handle" method to "dispatch" - makes more sense with this model
+* Pass around *event* for filters, but still params for handlers.  First step toward deprecating
+  the passing around of params.  Filters handle the event properly, not by returning true.
+* Deprecate prepend_handler officially, but obviously still support it.  Provide add_handler, which
+  registers handler that takes event object rather than params. <--- BIG MAYBE ON THIS - look into feasability again!
 * Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
   chain.  Post-event filters would be okay if they were all registered in an optional library the
   user has to explicitly opt for.
+
+==Version 2.0
+
+When ready to change the API in a major way
+
+* Remove prepend_handler completely, remove all legacy code supporting it.
 
 ==Low priority
 
@@ -49,19 +64,12 @@ Someday....
   * User is setting channel key to "foo"
   * User is setting "-m" on #bots
   * User is taking away Towelie's voice (-v)
-* Eventually build an event object for outgoing event handlers.  This may not
-  ever really be necessary, as outgoing events have very specific arguments
-  and the handling of events isn't nearly as commonplace as handling incoming
-  events.
 * Allow multiple targets / hostmask / etc in outgoing PRIVMSG and NOTICE
 * Allow incoming PRIVMSG to have multiple parts - :actor PRIVMSG victim :Hello there, sir!\001USERINFO\001
   * Allow IncomingEvent.parse to actually return multiple events?  Would help with modes, too.
   * Add special handlers for some of this stuff so it's not up to user to parse.
     :incoming_userinfo, :incoming_version, :outgoing_userinfo, etc.
 * Allow for CTCP quoting/dequoting...?  Don't know much about this - read up!
-* New API for handlers - keep old because it's still useful
-  * said_xxx {|args| do_stuff} => same as prepend_handler(:outgoing_xxx)
-  * heard_xxx {|args| do_stuff} => same as prepend_handler(:incoming_xxx)
 * CTCP formatting:
   * Color is ^C<fore>[,<back>]
   * Bold is ^B to toggle on or off
