@@ -506,29 +506,19 @@ class YAIL
       when :incoming_invite
         handle(event.type, event.fullname, event.nick, event.channel)
 
-      # This can encompass three possible messages, so further refining happens here - the last param
-      # is always the message itself, so we look for patterns there.
-      when 'PRIVMSG'
-        case msg.params.last
-          when /^\001ACTION (.+?)\001$/
-            handle(:incoming_act, msg.prefix, msg.nick, msg.params.first, $1)
-          when /^\001(.+?)\001$/
-            handle(:incoming_ctcp, msg.prefix, msg.nick, msg.params.first, $1)
-          else
-            handle(:incoming_msg, msg.prefix, msg.nick, param1, other1)
-        end
+      # Fortunately, the legacy handler for all five "message" types is the same!
+      when :incoming_msg, :incoming_ctcp, :incoming_act, :incoming_notice, :incoming_ctcpreply
+        # Legacy handling requires merger of target and channel....
+        target = event.target if event.respond_to?(:target)
+        target = event.channel if event.respond_to?(:channel)
+        handle(event.type, event.fullname, event.nick, target, event.text)
 
-      # This can encompass two possible messages, again based on final param
-      when 'NOTICE'
-        case msg.params.last
-          when /^\001(.+?)\001$/
-            handle(:incoming_ctcpreply, msg.prefix, msg.nick, msg.params.first, $1)
-          else
-            handle(:incoming_notice, msg.prefix, msg.nick, param1, other1)
-        end
+      # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
+      # but let's not put hacks into the core Event object.  Modes need reworking soon anyway.
+      when :incoming_mode
+        # text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
+        handle(event.type, event.fullname, event.nick, event.channel, event.text, event.targets.join(' '))
 
-      when 'MODE'
-        handle(:incoming_mode, msg.prefix, msg.nick, param1, param2, other2)
       when 'JOIN'
         handle(:incoming_join, msg.prefix, msg.nick, param1)
       when 'PART'
