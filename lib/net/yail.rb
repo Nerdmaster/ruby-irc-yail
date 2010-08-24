@@ -519,16 +519,20 @@ class YAIL
         # text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
         handle(event.type, event.fullname, event.nick, event.channel, event.text, event.targets.join(' '))
 
-      when 'JOIN'
-        handle(:incoming_join, msg.prefix, msg.nick, param1)
-      when 'PART'
-        handle(:incoming_part, msg.prefix, msg.nick, param1, other1)
-      when 'KICK'
-        handle(:incoming_kick, msg.prefix, msg.nick, param1, param2, other2)
-      when 'QUIT'
-        handle(:incoming_quit, msg.prefix, msg.nick, param1)
-      when 'NICK'
-        handle(:incoming_nick, msg.prefix, msg.nick, param1)
+      when :incoming_join
+        handle(event.type, event.fullname, event.nick, event.channel)
+
+      when :incoming_part
+        handle(event.type, event.fullname, event.nick, event.channel, event.text)
+
+      when :incoming_kick
+        handle(event.type, event.fullname, event.nick, event.channel, event.target, event.text)
+
+      when :incoming_quit
+        handle(event.type, event.fullname, event.nick, event.text)
+
+      when :incoming_nick
+        handle(event.type, event.fullname, event.nick, event.new_nick)
 
       # Unknown line!
       else
