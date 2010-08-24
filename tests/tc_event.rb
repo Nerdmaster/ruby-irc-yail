@@ -133,7 +133,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     event = Net::YAIL::IncomingEvent.parse(':[|\|1]!~nerdmaste@nerd.nerdbucket.com NICK :Deadnerd')
     assert_equal '[|\|1]', event.nick
     assert_equal :incoming_nick, event.type
-    assert_equal 'Deadnerd', event.new_nick
+    assert_equal 'Deadnerd', event.text
   end
 
   # Test some notice stuff

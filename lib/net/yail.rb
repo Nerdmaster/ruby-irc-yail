@@ -532,7 +532,7 @@ class YAIL
         handle(event.type, event.fullname, event.nick, event.text)
 
       when :incoming_nick
-        handle(event.type, event.fullname, event.nick, event.new_nick)
+        handle(event.type, event.fullname, event.nick, event.text)
 
       # Unknown line!
       else

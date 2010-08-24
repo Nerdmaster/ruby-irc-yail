@@ -166,7 +166,7 @@ class YAIL
 
         when 'NICK'
           data[:type] = :nick
-          data[:new_nick] = msg.params.first
+          data[:text] = msg.params.first
           event = new(data)
   
         # Unknown line!
