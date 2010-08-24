@@ -2,13 +2,21 @@
 
 Stuff to do soon
 
+* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
+  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
+  This is one place where API consistency (using .text and such) is less important than usability.
+  * Example: For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
+    * User is banning Towelie!*@*
+    * User is setting "+i" to #bots
+    * User is giving Doogles +v
+    * User is setting channel key to "foo"
+    * User is setting "-m" on #bots
+    * User is taking away Towelie's voice (-v)
 * Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
   that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
   * Type also set to :incoming_ and :outgoing_ - change this, too?
     * Type is probably okay - backward-compatibility is FAR easier if left alone, and :incoming_xxx
       can happen with any protocol, especially things like messages, joins, etc.
-* Get YAIL using Event class for parsing all data.  First step toward passing around the event as
-  an object is to use it for parsing....
 * Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
   reporting would be of "INFO" level, with the "if @loud" type of options being "DEBUG".  This
   gives users of the library a whole lot more control.  Default will still be stdout, and logging
@@ -55,15 +63,6 @@ When ready to change the API in a major way
 
 Someday....
 
-* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
-  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
-  For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
-  * User is banning Towelie!*@*
-  * User is setting "+i" to #bots
-  * User is giving Doogles +v
-  * User is setting channel key to "foo"
-  * User is setting "-m" on #bots
-  * User is taking away Towelie's voice (-v)
 * Allow multiple targets / hostmask / etc in outgoing PRIVMSG and NOTICE
 * Allow incoming PRIVMSG to have multiple parts - :actor PRIVMSG victim :Hello there, sir!\001USERINFO\001
   * Allow IncomingEvent.parse to actually return multiple events?  Would help with modes, too.
