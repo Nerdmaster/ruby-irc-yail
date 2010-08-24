@@ -68,6 +68,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Current global users: 22  Max: 33', event.text
     assert_equal :incoming_266, event.type
     assert_equal 'nerdbucket.com', event.servername
+    assert_equal 'Nerdmaster', event.target
 
     assert !event.respond_to?(:nick)
     assert !event.respond_to?(:channel)
@@ -75,6 +76,15 @@ class MessageParserEventTest < Test::Unit::TestCase
 
     assert_equal :incoming_numeric, event.parent.type
     assert_equal 266, event.parent.numeric
+
+    # Numeric with multiple args
+    event = Net::YAIL::IncomingEvent.parse(':someserver.co.uk.fn.bb 366 Towelie #bottest :End of /NAMES list.')
+    assert_equal :incoming_366, event.type
+    assert_equal '#bottest End of /NAMES list.', event.text
+    assert_equal ['#bottest', 'End of /NAMES list.'], event.parameters
+
+    # First param in the message params list should still be nick
+    assert_equal 'Towelie', event.msg.params.first
   end
 
   # Test an invite

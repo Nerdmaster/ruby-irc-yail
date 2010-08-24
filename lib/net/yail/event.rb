@@ -105,9 +105,13 @@ class YAIL
 
         when /^\d{3}$/
           # Get base event for the "numeric" type - so many of these exist, and so few are likely
-          # to be handled directly....
+          # to be handled directly.  Sadly, some hackery has to happen here to make "text" backward-
+          # compatible since old YAIL auto-joined all parameters into one string.
           data[:type] = :numeric
-          data[:text] = msg.params.last
+          params = msg.params.dup
+          data[:target] = params.shift
+          data[:parameters] = params
+          data[:text] = params.join(' ')
           data[:numeric] = msg.command.to_i
           event = new(data)
 
