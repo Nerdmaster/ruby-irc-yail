@@ -13,7 +13,7 @@ require 'net/yail/output_api'
 require 'yail-version'
 
 # Finally, a real class to include!
-require 'net/yail/message_parser.rb'
+require 'net/yail/event.rb'
 
 # If a thread crashes, I want the app to die.  My threads are persistent, not
 # temporary.
@@ -484,19 +484,17 @@ class YAIL
       end
     end
 
-    # Use the exciting new parser
-    msg = Net::YAIL::MessageParser.new(line)
+    # Use the exciting new-new parser
+    event = Net::YAIL::IncomingEvent.parse(line)
 
-    # In the legacy system, there are never situations where we want the params
-    # separated into array elements.  So we convert them here, since so many
-    # handlers require a param or two followed by "everything else".
-    params = msg.params.dup
-    param1 = params.shift
-    other1 = params.join(' ') || ''
-    param2 = params.shift
-    other2 = params.join(' ') || ''
+    # Partial conversion to using events - we still have a horrible case statement, but
+    # we're at least using the event object.  Slightly less hacky than before.
 
-    case msg.command
+    # Except for this - we still have to handle numerics the crappy way until we build the proper
+    # dispatching of events
+    event = event.parent if event.parent && :incoming_numeric == event.parent.type
+
+    case event.type
       # Ping is important to handle quickly, so it comes first.
       when 'PING'
         handle(:incoming_ping, msg.params.first)
