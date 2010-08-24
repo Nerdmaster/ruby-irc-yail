@@ -496,12 +496,15 @@ class YAIL
 
     case event.type
       # Ping is important to handle quickly, so it comes first.
-      when 'PING'
-        handle(:incoming_ping, msg.params.first)
-      when /^\d{3}$/
-        handle_numeric(msg.command.to_i, msg.prefix, msg.nick, param1, other1)
-      when 'INVITE'
-        handle(:incoming_invite, msg.prefix, msg.nick, msg.params.last)
+      when :incoming_ping
+        handle(event.type, event.text)
+
+      when :incoming_numeric
+        # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
+        handle_numeric(event.numeric, event.servername, nil, target, event.text)
+
+      when :incoming_invite
+        handle(event.type, event.fullname, event.nick, event.channel)
 
       # This can encompass three possible messages, so further refining happens here - the last param
       # is always the message itself, so we look for patterns there.
