@@ -50,7 +50,7 @@ module Net
 #   this handler will still break the entire chain of event handling.
 # * :incoming_msg(fullactor, actor, target, text) - Normal message from actor to target
 # * :incoming_act(fullactor, actor, target, text) - CTCP "action" (emote) from actor to target
-# * :incoming_invite(fullactor, actor, target, text) - INVITE to target channel from actor
+# * :incoming_invite(fullactor, actor, target) - INVITE to target channel from actor
 # * :incoming_ctcp(fullactor, actor, target, text) - CTCP other than "action" from actor to target
 # * :incoming_ctcpreply(fullactor, actor, target, text) - CTCP NOTICE from actor to target
 # * :incoming_notice(fullactor, actor, target, text) - other NOTICE from actor to target
