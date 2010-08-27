@@ -1,6 +1,4 @@
-github page: http://github.com/Nerdmaster/ruby-irc-yail
-
-Latest documentation is always at http://ruby-irc-yail.nerdbucket.com/
+Latest documentation is always at [Nerdbucket.com](http://ruby-irc-yail.nerdbucket.com/)
 
 Net::YAIL is a library built for dealing with IRC communications in Ruby.
 This is a project I've been building for about three years, based
@@ -18,10 +16,11 @@ far better than this thing will, but the general design I built here has
 just felt more natural to me than the other libraries I've looked at since
 I started my project.
 
-=Example Usage
+Example Usage
+======
 
-For the nitty-gritty, you can see all this stuff in the Net::YAIL page, as
-well as more complete documentation about the system.  For a complete bot,
+For the nitty-gritty, you can see all this stuff in the [Net::YAIL docs](http://ruby-irc-yail.nerdbucket.com/)
+page, as well as more complete documentation about the system.  For a complete bot,
 check out the IRCBot source code.  Below is just a very simple example:
 
     require 'rubygems'
@@ -49,7 +48,8 @@ Now we've built a simple IRC listener that will connect to a (probably
 invalid) network, identify itself, and sit around waiting for the welcome
 message.  After this has occurred, we join a channel and return false.
 
-=Features of YAIL:
+Features of YAIL:
+========
 
 * Allows event handlers to be specified very easily for all known IRC events,
   and except in a few rare cases one can choose to override the default
@@ -68,6 +68,9 @@ message.  After this has occurred, we join a channel and return false.
   the next handler will get called.  This isn't useful for a simple bot most
   likely, but can have some utility in bigger projects where a single event
   may need to be dispatched to several handlers.
+  * The upcoming <s>2.0</s>1.4 release will change this greatly, though -
+    you should start looking at your app's handlers in terms of whether they
+    are the "core" handler or just a "filter".  More info to come!
 * Easy to build a simple bot without subclassing anything.  One gripe I had
   with IRCSocket was that it was painful to do anything without subclassing
   and overriding methods.  No need here.
