@@ -547,8 +547,13 @@ class YAIL
   public
   # Event handler hook.  Kinda hacky.  Calls your event(s) before the default
   # event.  Default stuff will happen if your handler doesn't return true.
-  def prepend_handler(event, *procs)
+  def prepend_handler(event, *procs, &block)
     raise "Cannot change handlers while threads are listening!" if @ioloop_thread
+
+    # Allow blocks as well as procs
+    if block_given?
+      procs.push(block)
+    end
 
     # See if this is a word for a numeric - only applies to incoming events
     if (event.to_s =~ /^incoming_(.*)$/)
