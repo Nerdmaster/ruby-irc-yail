@@ -1,4 +1,4 @@
-Latest documentation is always at [Nerdbucket.com](http://ruby-irc-yail.nerdbucket.com/)
+The latest stable release's documentation is always at [Nerdbucket.com](http://ruby-irc-yail.nerdbucket.com/).
 
 Net::YAIL is a library built for dealing with IRC communications in Ruby.
 This is a project I've been building for about three years, based
