@@ -2,7 +2,8 @@
 
 Stuff to do soon
 
-* Make README github-friendly text, possibly build new, simpler global rdoc-friendly file
+* Steal Ruby-IRC's signal trapping
+  * Move main loop inside YAIL so user isn't forced into `loop do; blah; end` just to keep bot alive
 * Allow blocks as well as procs in handlers
 * Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
   that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
