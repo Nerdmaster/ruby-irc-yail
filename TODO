@@ -2,16 +2,8 @@
 
 Stuff to do soon
 
-* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
-  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
-  This is one place where API consistency (using .text and such) is less important than usability.
-  * Example: For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
-    * User is banning Towelie!*@*
-    * User is setting "+i" to #bots
-    * User is giving Doogles +v
-    * User is setting channel key to "foo"
-    * User is setting "-m" on #bots
-    * User is taking away Towelie's voice (-v)
+* Make README github-friendly text, possibly build new, simpler global rdoc-friendly file
+* Allow blocks as well as procs in handlers
 * Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
   that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
   * Type also set to :incoming_ and :outgoing_ - change this, too?
@@ -24,31 +16,85 @@ Stuff to do soon
 
 ==Version 1.4
 
-Some API changes, but nothing likely to break compatibility
+API changes:
+------------
 
+Deprecating prepend_handler in favor of before_filter, set_callback, and after_filter.
+prepend_handler and current event system stay in for a while, but won't last forever....
+
+Related to above: callback and filters no longer have the ability to stop the action
+chain.  More akin to a more typical plugin architecture, you have filters that always run, and
+as many as you like, then "core" functionality in the callback.  No breaking chain, no stopping
+other people's stuff from running.  Callbacks are the core code, the response to an action.  They
+should be used to actually handle an event: a bot's "PRIVMSG #channel Hey there, bob" output on
+a "bob joins the channel" message.  Filters are more for behind-the-scenes stuff: responding to a
+PING, storing stats, logging, manipulating input/output, changing variables (bot's nickname on an
+:incoming_nick event), etc.
+
+A plugin could use a filter where one isn't really appropriate, and this may make sense for a
+plugin built for a very specific purpose - but the *final* program should be the only thing that
+registers the callback, because there can be only one.  When you call set_callback, any previous
+callback is lost, PERIOD.
+
+Looking at this like Rails, the callback would be the action, while filters would be... filters.
+Looking at it like wordpress, the callback is the core WP code, while the filters are your plugin
+actions.  One plugin author shouldn't be breaking another's ability to work.  Unlike Rails,
+filters will NOT be able to stop callbacks from happening.  Still considering this as a
+possibility, but not sure if I like that for an IRC app.
+
+TODO for this change:
+----------------------
+
+* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
+  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
+  This is one place where API consistency (using .text and such) is less important than usability.
+  * Example: For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
+    * User is banning Towelie!*@*
+    * User is setting "+i" to #bots
+    * User is giving Doogles +v
+    * User is setting channel key to "foo"
+    * User is setting "-m" on #bots
+    * User is taking away Towelie's voice (-v)
+* Make events more like a plugin kind of system.
+  * Each event can have pre-callback and post-callback filters.
+    * These would include internal things like the handling of changing bot's nick.
+    * User could add his own.
+    * All filters always run - no breaking the chain!
+  * User normally registers a single callback - this is the definitive handler for a given IRC event.
+    * New method, set_callback or similar.  Basically overwrites handler for a given event.
+    * Deprecate prepend_handler code - give warning to $stderr, even.
+  * Callbacks should be used for things like a bot that does a certain action when his name is
+    spoken in a channel, for instance - an actual handling of the event.
+  * Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
+* Allow user to specify some way to decide when to call parent event handler
+  * Use cases:
+    * User may register :incoming_msg handler and doesn't want to handle ctcp and action
+      * (today's YAIL acts this way - all events must be explicitly handled)
+    * User registers :incoming_ctcp and forever wants all children of that type to propagate up
+      * (today's YAIL has no way to do this)
+  * User registers events whose children always propagate up.
+    * Event parser builds events in a double-linked-list structure so it can register only the
+      parent, and we can travel *down* from there.
+* New dispatch routine for above two ideas, called by process_input:
+  * Create dispatch() method.  For 1.4, this calls handle() after callbacks but before after-
+    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
+  * Code:
+        def dispatch(event)
+          if (event.child.nil? || propagation.include?(event.type))
+            call_before_filters(event)
+            call_handler(event)
+            legacy_handler(event)  # this will house the legacy logic currently living in process_input
+            call_after_filters(event)
+            return
+          end
+          dispatch(event.child);
+        end
 * Build an event object for outgoing event handlers.  This may not
   ever really be necessary, as outgoing events have very specific arguments
   and the handling of events isn't nearly as commonplace as handling incoming
   events.
   * Needs to be done anyway - deprecating the arg-passing system requires that *all* events have
     some object behind them.
-* Restructure events to have before- and after-event filters that happen around event handler, and
-  (generally) don't mess with the event handler.
-  * Event happens:
-    * Find before filters for event, then event's parent, then parent's parent, etc.  If any filter
-      handles the event, end here.  Filters should ALMOST NEVER do this, as it kills handlers!
-    * Find handlers for event, parent, parent-parent.  Run until one handles the event.  Handlers
-      should return true to indicate they've done their job, so handling :ctcp should mean your
-      :privmsg handler isn't going to re-handle the event!
-    * Find after filters for event, parent, parent-parent.  Run all.  After filters are for things
-      like reporting/logging/etc.  None can "break the chain".
-  * Provide add_before_filter, add_after_filter, add_handler - no need to prepend anything anymore
-    since filtering will allow for reporting and such as necessary without handler clutter.
-  * Rename "handle" method to "dispatch" - makes more sense with this model
-* Pass around *event* for filters, but still params for handlers.  First step toward deprecating
-  the passing around of params.  Filters handle the event properly, not by returning true.
-* Deprecate prepend_handler officially, but obviously still support it.  Provide add_handler, which
-  registers handler that takes event object rather than params. <--- BIG MAYBE ON THIS - look into feasability again!
 * Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
   chain.  Post-event filters would be okay if they were all registered in an optional library the
   user has to explicitly opt for.
