@@ -534,9 +534,12 @@ class YAIL
 
       # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
       # but let's not put hacks into the core Event object.  Modes need reworking soon anyway.
+      #
+      # NOTE: text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
       when :incoming_mode
-        # text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
-        handle(event.type, event.fullname, event.nick, event.channel, event.text, event.targets.join(' '))
+        # Modes can come from the server, so legacy system again regularly sent nil data....
+        nick = event.server? ? '' : event.nick
+        handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
 
       when :incoming_join
         handle(event.type, event.fullname, event.nick, event.channel)

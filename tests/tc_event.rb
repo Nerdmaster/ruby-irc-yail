@@ -185,6 +185,11 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal ['Towelie', 'Doogles!*@*'], event.targets
     assert_equal '+ob', event.text
 
+    # Newly-created channels do this
+    event = Net::YAIL::IncomingEvent.parse(':nerdbucket.com MODE #bots +nt')
+    assert event.server?
+    assert_equal 'nerdbucket.com', event.servername
+
     # TODO: Parse modes better!  This case will be interesting, as the "i" is channel-specific.  Useful
     # parsing would give us something like {'#bots' => '-i', 'Doogles!*@*' => '-b', 'Towelie' => '-v', 'Nerdmaster' => '-v'}
     event = Net::YAIL::IncomingEvent.parse(":Nerdmaster!jeremy@nerdbucket.com MODE #bots -bivv Doogles!*@* Towelie Nerdmaster")
