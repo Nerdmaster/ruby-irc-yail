@@ -517,7 +517,16 @@ class YAIL
         # Legacy handling requires merger of target and channel....
         target = event.target if event.respond_to?(:target)
         target = event.channel if event.respond_to?(:channel)
-        handle(event.type, event.fullname, event.nick, target, event.text)
+
+        # Notices come from server sometimes, so... another merger for legacy fun!
+        if event.respond_to?(:fullname)
+          from_full = event.fullname
+          from = event.nick
+        else
+          from_full = event.servername
+          from = ''
+        end
+        handle(event.type, from_full, from, target, event.text)
 
       # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
       # but let's not put hacks into the core Event object.  Modes need reworking soon anyway.

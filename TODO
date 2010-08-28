@@ -5,6 +5,8 @@ Next release
   * Move main loop inside YAIL so user isn't forced into `loop do; blah; end` just to keep bot alive
   * Rewrite examples and IRCBot if necessary
 * Allow blocks as well as procs in handlers
+* Consider a "from" element in events, since things like NOTICE can be from users or the server....
+  * .server? to indicate server sent it
 
 High priority
 =============
