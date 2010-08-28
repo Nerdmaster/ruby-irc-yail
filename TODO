@@ -78,8 +78,9 @@ TODO for this change:
   * Outgoing events need to be separate in some way because while they can be filtered, the default
     handling has to remain for them to work!
   * Redo logger and dumbbot when this is ready
-  * Build example plugin or two so this functionality isn't meaningless!  Speech filtering and
-    command handler system come to mind.
+  * Build example plugin or two so this functionality isn't meaningless!  Speech filtering, ignore
+    (by hostmask regex or nick or whatever), command handler system (register commands, user enters
+    "!command" and handler hits) come to mind.
   * Consider allowing a default of :incoming_xxx on callback, since those are only allowed for
     incoming events, and even filters so only outgoing filters require explicit :outgoing_xxx
     * Re-consider functional semantics like "before_say_xxx ..." for :outgoing_xxx filter, etc. -
