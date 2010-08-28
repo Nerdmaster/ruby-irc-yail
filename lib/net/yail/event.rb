@@ -77,6 +77,11 @@ class YAIL
       end
     end
 
+    # Helps us debug
+    def to_s
+      return super().gsub('IncomingEvent', "IncomingEvent[#{@type.to_s}]")
+    end
+
     # Incoming events in our system are always :incoming_xxx
     def type; return :"incoming_#{@type.to_s}"; end
 
@@ -98,6 +103,11 @@ class YAIL
       end
 
       case msg.command
+        when 'ERROR'
+          data[:type] = :error
+          data[:text] = msg.params.last
+          event = new(data)
+
         when 'PING'
           data[:type] = :ping
           data[:text] = msg.params.last
