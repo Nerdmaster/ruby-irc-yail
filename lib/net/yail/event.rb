@@ -94,12 +94,17 @@ class YAIL
       msg = Net::YAIL::MessageParser.new(line)
       data = { :raw => raw, :msg => msg, :parent => nil }
 
+      # Not all messages from the server identify themselves as such, so we just assume it's from
+      # the server unless we explicitly see a nick
+      data[:server?] = true
+
       # Sane defaults for most messages
       if msg.servername
-        data[:servername] = msg.servername
+        data[:from] = data[:servername] = msg.servername
       elsif msg.prefix && msg.nick
-        data[:fullname] = msg.prefix
+        data[:from] = data[:fullname] = msg.prefix
         data[:nick] = msg.nick
+        data[:server?] = false
       end
 
       case msg.command

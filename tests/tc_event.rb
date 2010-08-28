@@ -13,6 +13,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert !event.respond_to?(:nick)
     assert !event.respond_to?(:channel)
     assert !event.respond_to?(:fullname)
+    assert event.server?
   end
 
   # Parsing of PRIVMSG messages
@@ -24,6 +25,8 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'jeremy', event.msg.user
     assert_equal 'nerdbucket.com', event.msg.host
     assert_equal 'Nerdmaster!jeremy@nerdbucket.com', event.fullname
+    assert_equal 'Nerdmaster!jeremy@nerdbucket.com', event.from
+    assert !event.server?
     assert_equal 'PRIVMSG', event.msg.command
     assert_equal :incoming_msg, event.type
     assert_equal 'Nerdminion', event.target
@@ -68,11 +71,13 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Current global users: 22  Max: 33', event.text
     assert_equal :incoming_266, event.type
     assert_equal 'nerdbucket.com', event.servername
+    assert_equal 'nerdbucket.com', event.from
     assert_equal 'Nerdmaster', event.target
 
     assert !event.respond_to?(:nick)
     assert !event.respond_to?(:channel)
     assert !event.respond_to?(:fullname)
+    assert event.server?
 
     assert_equal :incoming_numeric, event.parent.type
     assert_equal 266, event.parent.numeric
@@ -140,6 +145,8 @@ class MessageParserEventTest < Test::Unit::TestCase
   def test_notice_and_ctcp_reply
     event = Net::YAIL::IncomingEvent.parse(":nerdbucket.com NOTICE Nerdminion :You suck.  A lot.")
     assert_equal 'nerdbucket.com', event.servername
+    assert_equal 'nerdbucket.com', event.from
+    assert event.server?
     assert_equal :incoming_notice, event.type
     assert_equal 'Nerdminion', event.target
     assert !event.respond_to?(:nick)
@@ -155,6 +162,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Nerdmaster', event.target
     assert_equal 'Nerdminion', event.nick
     assert_equal 'Nerdminion!minion@nerdbucket.com', event.fullname
+    assert_equal 'Nerdminion!minion@nerdbucket.com', event.from
     assert_equal 'USERINFO :Minion of the nerd', event.text
 
     # Channel-wide notice
