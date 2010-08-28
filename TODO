@@ -1,9 +1,3 @@
-Next release
-============
-
-* Consider a "from" element in events, since things like NOTICE can be from users or the server....
-  * .server? to indicate server sent it
-
 High priority
 =============
 
