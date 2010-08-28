@@ -517,7 +517,7 @@ class YAIL
 
       when :incoming_numeric
         # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
-        handle_numeric(event.numeric, event.servername, nil, target, event.text)
+        handle_numeric(event.numeric, event.servername, nil, event.target, event.text)
 
       when :incoming_invite
         handle(event.type, event.fullname, event.nick, event.channel)
