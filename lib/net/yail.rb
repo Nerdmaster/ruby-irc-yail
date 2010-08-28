@@ -323,6 +323,12 @@ class YAIL
     # Don't listen if socket is dead
     return if @dead_socket
 
+    # Exit a bit more gracefully than just crashing out - allow any :outgoing_quit filters to run,
+    # and even give the server a second to clean up before we fry the connection
+    quithandler = lambda { quit; sleep 1; stop_listening }
+    trap("INT", quithandler)
+    trap("TERM", quithandler)
+
     # Build forced / magic logic - welcome setting @me, ping response, etc.
     # Since we do these here, nobody can skip them and they're always first.
     setup_magic_handlers
