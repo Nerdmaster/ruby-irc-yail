@@ -343,6 +343,16 @@ class YAIL
     handle(:outgoing_begin_connection, @username, @address, @realname)
   end
 
+  # This starts the connection, threading, etc. as start_listening, but *forces* the user into
+  # and endless loop.  Great for a simplistic bot, but probably not universally desired.
+  def start_listening!
+    start_listening
+    while !@dead_socket
+      # This is more for CPU savings than actually needing a delay - CPU spikes if we never sleep
+      sleep 0.05
+    end
+  end
+
   # Kills and clears all threads.  See note above about my lack of knowledge
   # regarding threads.  Please help me if you know how to make this system
   # better.  DEAR LORD HELP ME IF YOU CAN!
