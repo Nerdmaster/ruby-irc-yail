@@ -9,11 +9,11 @@ require 'net/yail/magic_events'
 require 'net/yail/default_events'
 require 'net/yail/output_api'
 
-# This tells us our version info.  Probably not necessary in here, but it makes me happy.
-require 'yail-version'
+# This tells us our version info.
+require 'net/yail/yail-version'
 
 # Finally, a real class to include!
-require 'net/yail/event.rb'
+require 'net/yail/event'
 
 # If a thread crashes, I want the app to die.  My threads are persistent, not
 # temporary.
