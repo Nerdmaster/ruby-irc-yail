@@ -32,7 +32,7 @@ module IRCOutputAPI
   # speaking, that is.
   def raw(line, report = true)
     @socket.puts line
-    report "bot: '#{line}'" if report
+    report "bot: #{line.inspect}" if report
   end
 
   # Calls :outgoing_privmsg handler, then sends a message (text) out to the
