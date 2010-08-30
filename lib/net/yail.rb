@@ -527,8 +527,8 @@ class YAIL
       # Fortunately, the legacy handler for all five "message" types is the same!
       when :incoming_msg, :incoming_ctcp, :incoming_act, :incoming_notice, :incoming_ctcpreply
         # Legacy handling requires merger of target and channel....
-        target = event.target if event.respond_to?(:target)
-        target = event.channel if event.respond_to?(:channel)
+        target = event.target if event.pm?
+        target = event.channel if !target
 
         # Notices come from server sometimes, so... another merger for legacy fun!
         nick = event.server? ? '' : event.nick
