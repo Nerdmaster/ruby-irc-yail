@@ -325,7 +325,9 @@ class YAIL
 
     # Exit a bit more gracefully than just crashing out - allow any :outgoing_quit filters to run,
     # and even give the server a second to clean up before we fry the connection
-    quithandler = lambda { quit; sleep 1; stop_listening; exit }
+    #
+    # TODO: perhaps this should be in a callback so user can override TERM/INT handling
+    quithandler = lambda { quit('Terminated by user'); sleep 1; stop_listening; exit }
     trap("INT", quithandler)
     trap("TERM", quithandler)
 
