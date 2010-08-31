@@ -179,7 +179,6 @@ class YAIL
           data[:text] = msg.params[2]
           event = new(data)
 
-        #TODO
         when 'QUIT'
           data[:type] = :quit
           data[:text] = msg.params.first
