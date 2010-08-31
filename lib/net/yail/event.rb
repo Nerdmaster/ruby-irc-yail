@@ -118,6 +118,12 @@ class YAIL
           data[:text] = msg.params.last
           event = new(data)
 
+        when 'TOPIC'
+          data[:type] = :topic
+          data[:channel] = msg.params.first
+          data[:text] = msg.params.last
+          event = new(data)
+
         when /^\d{3}$/
           # Get base event for the "numeric" type - so many of these exist, and so few are likely
           # to be handled directly.  Sadly, some hackery has to happen here to make "text" backward-

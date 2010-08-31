@@ -76,5 +76,13 @@ class MessageParserTest < Test::Unit::TestCase
     assert_equal '[|\|1]!~nerdmaste@nerd.nerdbucket.com', msg.prefix
     assert_equal 'Deadnerd', msg.params.shift
     assert_equal 0, msg.params.length
+
+    # Annoying topic change
+    msg = Net::YAIL::MessageParser.new(":Dude!dude@nerdbucket.com TOPIC #nerdtalk :31 August 2010 \357\277\275 Foo.")
+    assert_equal 'TOPIC', msg.command
+    assert_equal 'Dude', msg.nick
+    assert_equal "31 August 2010 \357\277\275 Foo.", msg.params.last
+    assert_equal '#nerdtalk', msg.params.first
+    assert_equal 'Dude!dude@nerdbucket.com', msg.prefix
   end
 end

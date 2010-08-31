@@ -16,6 +16,15 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert event.server?
   end
 
+  def test_topic
+    event = Net::YAIL::IncomingEvent.parse(":Dude!dude@nerdbucket.com TOPIC #nerdtalk :31 August 2010 \357\277\275 Foo.")
+    assert_equal :incoming_topic, event.type
+    assert_equal 'Dude', event.nick
+    assert_equal "31 August 2010 \357\277\275 Foo.", event.text
+    assert_equal '#nerdtalk', event.channel
+    assert_equal 'Dude!dude@nerdbucket.com', event.fullname
+  end
+
   # Parsing of PRIVMSG messages
   def test_messages
     # Basic test of privmsg-type command
