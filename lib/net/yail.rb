@@ -560,6 +560,8 @@ class YAIL
 
       # Unknown line!
       else
+        # This should really never happen, so reporting is forced here for now
+        report('Unknown line: %s!' % line.inspect)
         handle(:incoming_miscellany, line)
     end
   end

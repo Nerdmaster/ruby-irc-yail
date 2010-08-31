@@ -184,9 +184,11 @@ class YAIL
           data[:text] = msg.params.first
           event = new(data)
   
-        # Unknown line!
+        # Unknown line!  If this library is complete, we should *never* see this situation occur,
+        # so it'll be up to the caller to decide what to do.
         else
-          raise "Unknown event: #{raw}"
+          data[:type] = :unknown
+          event = new(data)
       end
 
       return event
