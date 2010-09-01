@@ -33,16 +33,17 @@ check out the IRCBot source code.  Below is just a very simple example:
       :nicknames  => ['bot1', 'bot2', 'bot3']
     )
 
+    # Register a proc handler
     irc.prepend_handler :incoming_welcome, proc {|text, args|
       irc.join('#foo')
       return false
     }
 
-    irc.start_listening
-    while irc.dead_socket == false
-      # Avoid major CPU overuse by taking a very short nap
-      sleep 0.05
-    end
+    # Register a block
+    irc.prepend_handler(:incoming_invite) {|full, user, channel| irc.join(channel) }
+
+    # Loops forever here until CTRL+C is hit.
+    irc.start_listening!
 
 Now we've built a simple IRC listener that will connect to a (probably
 invalid) network, identify itself, and sit around waiting for the welcome
