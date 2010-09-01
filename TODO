@@ -12,7 +12,7 @@ High priority
   gives users of the library a whole lot more control.  Default will still be stdout, and logging
   will be set to ERROR on @silent option, INFO with no specific option, and DEBUG on @loud option.
 
-Version 1.4
+Version 1.5
 ===========
 
 API changes:
