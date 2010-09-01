@@ -55,7 +55,7 @@ module Net
 # * :incoming_ctcpreply(fullactor, actor, target, text) - CTCP NOTICE from actor to target
 # * :incoming_notice(fullactor, actor, target, text) - other NOTICE from actor to target
 # * :incoming_mode(fullactor, actor, target, modes, objects) - actor sets modes on objects in target channel
-# * :incoming_topic(fullactor, actor, channel, text) - actor sets channel topic to given text string
+# * :incoming_topic_change(fullactor, actor, channel, text) - actor sets channel topic to given text string
 # * :incoming_join(fullactor, actor, target) - actor joins target channel
 # * :incoming_part(fullactor, actor, target, text) - actor leaves target with message in text
 # * :incoming_kick(fullactor, actor, target, object, text) - actor kicked object from target with reason 'text'
@@ -544,7 +544,7 @@ class YAIL
         nick = event.server? ? '' : event.nick
         handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
 
-      when :incoming_topic
+      when :incoming_topic_change
         handle(event.type, event.fullname, event.nick, event.channel, event.text)
 
       when :incoming_join

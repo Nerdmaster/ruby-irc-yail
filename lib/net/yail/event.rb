@@ -119,7 +119,7 @@ class YAIL
           event = new(data)
 
         when 'TOPIC'
-          data[:type] = :topic
+          data[:type] = :topic_change
           data[:channel] = msg.params.first
           data[:text] = msg.params.last
           event = new(data)
