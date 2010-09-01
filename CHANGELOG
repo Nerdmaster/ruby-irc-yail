@@ -1,7 +1,42 @@
-1.3.6
+1.4.0
 =====
 
-* Foo
+New
+---
+
+* HOLY CRAP!  I never provided a topic change event?!?  Well, now it's here.  :incoming_topic_change
+  at your service.  Note that this is VERY DIFFERENT from the numeric :incoming_topic event, which
+  only tells you current topic for a channel.
+  * NOTE: if you've been handling topic changes via the miscellaneous handler, you *will* have to
+    change your code!
+* prepend_handler can now take a block instead of just a Proc object!
+* In addition to using the `start_listening` method of Net::YAIL, you can now call the "dangerous"
+  version of that method: `start_listening!`, which wraps the "safe" version, but also starts an
+  endless loop.  For extremely simple bots, this is simplifies your codebase greatly.
+* New bot example added to demonstrate a very simple case that's still pretty easy to extend and
+  configure: examples/simple/dumbbot.rb
+
+Changes
+-------
+
+* CTRL+C termination now results in a graceful termination which includes sending QUIT to the server
+* Major event handling overhaul.  Legacy apps *should* work fine, but if not, please let me know
+  by filing a ticket on github or something!
+  * For those who care, the back-end is now using a new class for handling and storing events.
+    This class is eventually going to be used for all handlers, rather than passing around a bunch
+    of arguments that are often unused.
+* README was removed in favor of two files: YAIL-RDOC for the rdoc "intro" info, and README.md for
+  a github-friendly description of the bot.
+
+Fixes
+-----
+
+* Nickname change in forced handler is now safer
+* Version information is now stored outside the main YAIL library
+* TODO updated a lot to better reflect my short-, medium-, and long-term goals
+* General update to documentation - a few grammatical fixes, some doc errors fixed, etc
+* MessageParser fixes to make it better at handling some of the edge cases, and better tests to
+  make sure it's doing what I think it's doing.
 
 1.3.5 and prior
 ===============
