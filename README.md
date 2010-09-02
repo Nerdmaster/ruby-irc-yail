@@ -69,7 +69,7 @@ Features of YAIL:
   the next handler will get called.  This isn't useful for a simple bot most
   likely, but can have some utility in bigger projects where a single event
   may need to be dispatched to several handlers.
-  * The upcoming 1.4 release will change this greatly, though -
+  * The upcoming 1.5 release will change this greatly, though -
     you should start looking at your app's handlers in terms of whether they
     are the "core" handler or just a "filter".  More info to come!
 * Easy to build a simple bot without subclassing anything.  One gripe I had
