@@ -243,8 +243,8 @@ class YAIL
   )
   attr_accessor(
     :silent,
-    :loud,
-    :throttle_seconds
+    :throttle_seconds,
+    :log
   )
 
   # Makes a new instance, obviously.
@@ -259,15 +259,19 @@ class YAIL
   # * <tt>:username</tt>: Username reported to server
   # * <tt>:realname</tt>: Real name reported to server
   # * <tt>:nicknames</tt>: Array of nicknames to cycle through
-  # * <tt>:silent</tt>: Don't report output messages from this object,
-  #   defaults to false
-  # * <tt>:loud</tt>: Report a whole lot of stuff that's normally silenced and
-  #   is generally very annoying.  Defaults to false, thankfully.
+  # * <tt>:silent</tt>: Sets Logger level to FATAL and silences most non-Logger
+  #   messages.
+  # * <tt>:loud</tt>: Sets Logger level to DEBUG. Spits out too many messages for your own good,
+  #   and really is only useful when debugging YAIL.  Defaults to false, thankfully.
   # * <tt>:throttle_seconds</tt>: Seconds between a cycle of privmsg sends.
   #   Defaults to 1.  One "cycle" is defined as sending one line of output to
   #   *all* targets that have output buffered.
   # * <tt>:server_password</tt>: Very optional.  If set, this is the password
   #   sent out to the server before USER and NICK messages.
+  # * <tt>:log</tt>: Optional, if set uses this logger instead of the default (Ruby's Logger).
+  #   If set, :loud and :silent options are ignored.
+  # * <tt>:log_io</tt>: Optional, ignored if you specify your own :log - sends given object to
+  #   Logger's constructor.  Must be filename or IO object.
   def initialize(options = {})
     @me                 = ''
     @nicknames          = options[:nicknames]
@@ -277,9 +281,21 @@ class YAIL
     @address            = options[:address]
     @port               = options[:port] || 6667
     @silent             = options[:silent] || false
-    @loud               = options[:loud] || false
+    loud                = options[:loud] || false
     @throttle_seconds   = options[:throttle_seconds] || 1
     @password           = options[:server_password]
+
+    # Special handling to avoid mucking with Logger constants if we're using a different logger
+    if options[:log]
+      @log = options[:log]
+    else
+      @log = Logger.new(options[:log_io] || STDERR)
+      @log.level = Logger::WARN
+ 
+      # Convert old-school options into logger stuff
+      @log.level = Logger::DEBUG if loud
+      @log.level = Logger::FATAL if @silent
+    end
 
     # Read in map of event numbers and names.  Yes, I stole this event map
     # file from RubyIRC and made very minor changes....  They stole it from
@@ -294,7 +310,7 @@ class YAIL
     begin
       @socket = TCPSocket.new(@address, @port)
     rescue StandardError => boom
-      report "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
+      @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
       @dead_socket = true
       raise
     end
@@ -387,7 +403,7 @@ class YAIL
       line = @socket.gets
     rescue StandardError => boom
       @dead_socket = true
-      report "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}" if @loud
+      @log.fatal "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}"
       raise
     end
 
@@ -399,7 +415,7 @@ class YAIL
 
     line.chomp!
 
-    report "+++INCOMING: #{line}" if @loud
+    @log.debug "+++INCOMING: #{line}"
 
     # Only synchronize long enough to push our incoming string onto the
     # input buffer
@@ -564,8 +580,8 @@ class YAIL
 
       # Unknown line!
       else
-        # This should really never happen, so reporting is forced here for now
-        report('Unknown line: %s!' % line.inspect)
+        # This should really never happen, but isn't technically an error per se
+        @log.warn 'Unknown line: %s!' % line.inspect
         handle(:incoming_miscellany, line)
     end
   end
@@ -608,7 +624,7 @@ class YAIL
     # Don't bother with anything if there are no handlers registered.
     return unless Array === @handlers[event]
 
-    report "+++EVENT HANDLER: Handling event #{event} via #{@handlers[event].inspect}:" if @loud
+    @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@handlers[event].inspect}:"
 
     # Call all hooks in order until one breaks the chain.  For incoming
     # events, we want something to break the chain or else it'll likely
@@ -633,7 +649,7 @@ class YAIL
       handle(base_event, text, args)
     else
       # No handler = report and don't worry about it
-      report "Unknown raw #{number.to_s} from #{fullactor}: #{text}"
+      @log.info "Unknown raw #{number.to_s} from #{fullactor}: #{text}"
     end
   end
 
