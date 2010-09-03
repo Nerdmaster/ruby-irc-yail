@@ -1,6 +1,7 @@
 require 'socket'
 require 'thread'
 require 'yaml'
+require 'logger'
 
 # To make this library seem smaller, a lot of code has been split up and put
 # into semi-logical files.  I don't really like this hacky solution, but I
