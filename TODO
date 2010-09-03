@@ -87,7 +87,7 @@ TODO for this change:
     * Event parser builds events in a double-linked-list structure so it can register only the
       parent, and we can travel *down* from there.
 * New dispatch routine for above two ideas, called by process_input:
-  * Create dispatch() method.  For 1.4, this calls handle() after callbacks but before after-
+  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
     callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
   * Code:
         def dispatch(event)
