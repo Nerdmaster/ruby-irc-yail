@@ -243,10 +243,27 @@ class YAIL
     :socket             # TCPSocket instance
   )
   attr_accessor(
-    :silent,
     :throttle_seconds,
     :log
   )
+
+  def silent
+    warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1'
+    return @silent
+  end
+  def silent=(val)
+    warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1'
+    @silent = val
+  end
+
+  def loud
+    warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1'
+    return @loud
+  end
+  def loud=(val)
+    warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1'
+    @loud = val
+  end
 
   # Makes a new instance, obviously.
   #
@@ -260,9 +277,9 @@ class YAIL
   # * <tt>:username</tt>: Username reported to server
   # * <tt>:realname</tt>: Real name reported to server
   # * <tt>:nicknames</tt>: Array of nicknames to cycle through
-  # * <tt>:silent</tt>: Sets Logger level to FATAL and silences most non-Logger
+  # * <tt>:silent</tt>: DEPRECATED - Sets Logger level to FATAL and silences most non-Logger
   #   messages.
-  # * <tt>:loud</tt>: Sets Logger level to DEBUG. Spits out too many messages for your own good,
+  # * <tt>:loud</tt>: DEPRECATED - Sets Logger level to DEBUG. Spits out too many messages for your own good,
   #   and really is only useful when debugging YAIL.  Defaults to false, thankfully.
   # * <tt>:throttle_seconds</tt>: Seconds between a cycle of privmsg sends.
   #   Defaults to 1.  One "cycle" is defined as sending one line of output to
@@ -282,9 +299,13 @@ class YAIL
     @address            = options[:address]
     @port               = options[:port] || 6667
     @silent             = options[:silent] || false
-    loud                = options[:loud] || false
+    @loud               = options[:loud] || false
     @throttle_seconds   = options[:throttle_seconds] || 1
     @password           = options[:server_password]
+
+    if (options[:silent] || options[:loud])
+      warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
+    end
 
     # Special handling to avoid mucking with Logger constants if we're using a different logger
     if options[:log]
@@ -294,7 +315,7 @@ class YAIL
       @log.level = Logger::WARN
  
       # Convert old-school options into logger stuff
-      @log.level = Logger::DEBUG if loud
+      @log.level = Logger::DEBUG if @loud
       @log.level = Logger::FATAL if @silent
     end
 
