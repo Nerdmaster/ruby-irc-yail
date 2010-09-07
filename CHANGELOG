@@ -1,3 +1,32 @@
+1.4.1
+=====
+
+NOTE: This will not be released as its own gem - it isn't a substantial change, and slightly affects
+backward-compatibility.  I'm not sure why I even tagged it other than it is its own feature....
+
+New
+---
+
+* YAIL now defaults to use Logger for all non-event logging.  Prepare for all logging to be pulled
+  out of YAIL soon, but anything that stays core will be *real* logs (debug logs for IRC messages,
+  fatal for truly critical errors, etc) instead of just STDERR prints.  You can access the log via
+  yail_object.log in order to change loglevel and such, and pass in your own logger via YAIL's
+  constructor.
+
+Changes
+-------
+
+* Specifying :loud and :silent in the constructor are NOW DEPRECATED.  These will be removed by
+  version 2, and possibly at the next minor version bump.  I hate them.  Instead, either specify
+  your own logger via the :log key in the constructor, or change your object via something like
+  `irc.log.level = ...`
+  * The default level will be WARN.  The "loud" level is DEBUG.  The "silent" level is FATAL.
+  * Note that YAIL still uses @silent for suppressing event reports in the output API.  This is
+    because I'm a moron, and I need to keep that functionality as-is until I tear it out of the
+    library completely.  Some people who are really stupid (me) actually rely on that reporting.
+    When I tear this stuff out is when deprecation ends and full removal of those options happens.
+
+
 1.4.0
 =====
 
