@@ -1,16 +1,13 @@
 High priority
 =============
 
+* Look into problem with ERROR events from server - not being detected properly
 * Allow secure connections - also steal from Ruby-IRC :P (sorry pope)
 * Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
   that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
   * Type also set to :incoming_ and :outgoing_ - change this, too?
     * Type is probably okay - backward-compatibility is FAR easier if left alone, and :incoming_xxx
       can happen with any protocol, especially things like messages, joins, etc.
-* Make non-event reporting more of a real log (use Ruby's Logger class, even).  Most current
-  reporting would be of "INFO" level, with the "if @loud" type of options being "DEBUG".  This
-  gives users of the library a whole lot more control.  Default will still be stdout, and logging
-  will be set to ERROR on @silent option, INFO with no specific option, and DEBUG on @loud option.
 
 Version 1.5
 ===========
