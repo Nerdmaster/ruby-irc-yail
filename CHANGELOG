@@ -29,6 +29,9 @@ Changes
     because I'm a moron, and I need to keep that functionality as-is until I tear it out of the
     library completely.  Some people who are really stupid (me) actually rely on that reporting.
     When I tear this stuff out is when deprecation ends and full removal of those options happens.
+* Basic class is now in the file net/yail/irc_bot instead of net/yail/IRCBot, to better follow
+  Ruby conventions.  I've left IRCBot there for now, but I may eventually take that away, so
+  consider fixing your `requires` statements today!
 
 
 1.4.0
