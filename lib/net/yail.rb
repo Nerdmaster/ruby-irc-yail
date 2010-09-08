@@ -248,20 +248,20 @@ class YAIL
   )
 
   def silent
-    warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1'
     return @log_silent
   end
   def silent=(val)
-    warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1'
     @log_silent = val
   end
 
   def loud
-    warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1'
     return @log_loud
   end
   def loud=(val)
-    warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1'
     @log_loud = val
   end
 
@@ -303,10 +303,6 @@ class YAIL
     @throttle_seconds   = options[:throttle_seconds] || 1
     @password           = options[:server_password]
 
-    if (options[:silent] || options[:loud])
-      warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
-    end
-
     # Special handling to avoid mucking with Logger constants if we're using a different logger
     if options[:log]
       @log = options[:log]
@@ -317,6 +313,10 @@ class YAIL
       # Convert old-school options into logger stuff
       @log.level = Logger::DEBUG if @log_loud
       @log.level = Logger::FATAL if @log_silent
+    end
+
+    if (options[:silent] || options[:loud])
+      @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
     end
 
     # Read in map of event numbers and names.  Yes, I stole this event map
