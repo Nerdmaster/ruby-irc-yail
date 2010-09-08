@@ -1,8 +1,5 @@
-1.4.1
+1.4.2
 =====
-
-NOTE: This will not be released as its own gem - it isn't a substantial change, and slightly affects
-backward-compatibility.  I'm not sure why I even tagged it other than it is its own feature....
 
 New
 ---
@@ -29,10 +26,15 @@ Changes
     because I'm a moron, and I need to keep that functionality as-is until I tear it out of the
     library completely.  Some people who are really stupid (me) actually rely on that reporting.
     When I tear this stuff out is when deprecation ends and full removal of those options happens.
-* Basic class is now in the file net/yail/irc_bot instead of net/yail/IRCBot, to better follow
+* Basic bot class is now in the file net/yail/irc_bot instead of net/yail/IRCBot, to better follow
   Ruby conventions.  I've left IRCBot there for now, but I may eventually take that away, so
   consider fixing your `requires` statements today!
 
+
+1.4.1
+=====
+
+Had some screwups here before deploying the gem, so this version was removed
 
 1.4.0
 =====
