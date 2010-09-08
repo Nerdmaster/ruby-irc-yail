@@ -20,6 +20,10 @@ Changes
   version 2, and possibly at the next minor version bump.  I hate them.  Instead, either specify
   your own logger via the :log key in the constructor, or change your object via something like
   `irc.log.level = ...`
+  * @loud and @silent have been renamed to discourage using those directly as a way to avoid the
+    deprecation warnings.  I will change these again, so don't rely on them!
+    * Note that if you really hate the warnings, you can of course choose not to hear them -
+      they're logged as WARN level events.
   * The default level will be WARN.  The "loud" level is DEBUG.  The "silent" level is FATAL.
   * Note that YAIL still uses @silent for suppressing event reports in the output API.  This is
     because I'm a moron, and I need to keep that functionality as-is until I tear it out of the
