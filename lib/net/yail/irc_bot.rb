@@ -109,7 +109,7 @@ class IRCBot
   private
   # Basic handler for joining our channels upon successful registration
   def welcome(text, args)
-    @channels.each {|channel| @irc.join(channel) }
+    @options[:channels].each {|channel| @irc.join(channel) }
     # Let the default welcome stuff still happen
     return false
   end
