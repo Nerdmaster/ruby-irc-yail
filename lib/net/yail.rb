@@ -249,20 +249,20 @@ class YAIL
 
   def silent
     warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1'
-    return @silent
+    return @log_silent
   end
   def silent=(val)
     warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1'
-    @silent = val
+    @log_silent = val
   end
 
   def loud
     warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1'
-    return @loud
+    return @log_loud
   end
   def loud=(val)
     warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1'
-    @loud = val
+    @log_loud = val
   end
 
   # Makes a new instance, obviously.
@@ -298,8 +298,8 @@ class YAIL
     @realname           = options[:realname]
     @address            = options[:address]
     @port               = options[:port] || 6667
-    @silent             = options[:silent] || false
-    @loud               = options[:loud] || false
+    @log_silent         = options[:silent] || false
+    @log_loud           = options[:loud] || false
     @throttle_seconds   = options[:throttle_seconds] || 1
     @password           = options[:server_password]
 
@@ -315,8 +315,8 @@ class YAIL
       @log.level = Logger::WARN
  
       # Convert old-school options into logger stuff
-      @log.level = Logger::DEBUG if @loud
-      @log.level = Logger::FATAL if @silent
+      @log.level = Logger::DEBUG if @log_loud
+      @log.level = Logger::FATAL if @log_silent
     end
 
     # Read in map of event numbers and names.  Yes, I stole this event map

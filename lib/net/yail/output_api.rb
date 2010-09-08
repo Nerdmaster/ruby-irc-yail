@@ -69,7 +69,7 @@ module IRCOutputAPI
 
     handle(:outgoing_msg, target, text)
 
-    report_string = @silent ? '' : "{#{target}} <#{@me}> #{text}"
+    report_string = @log_silent ? '' : "{#{target}} <#{@me}> #{text}"
     privmsg(target, text, report_string)
   end
 
@@ -81,7 +81,7 @@ module IRCOutputAPI
 
     handle(:outgoing_ctcp, target, text)
 
-    report_string = @silent ? '' :  "{#{target}}  [#{@me} #{text}]"
+    report_string = @log_silent ? '' :  "{#{target}}  [#{@me} #{text}]"
     privmsg(target, "\001#{text}\001", report_string)
   end
 
@@ -105,7 +105,7 @@ module IRCOutputAPI
 
     handle(:outgoing_notice, target, text)
 
-    report "{#{target}} -#{@me}- #{text}" unless @silent
+    report "{#{target}} -#{@me}- #{text}" unless @log_silent
     raw("NOTICE #{target} :#{text}", false)
   end
 
@@ -118,7 +118,7 @@ module IRCOutputAPI
 
     handle(:outgoing_ctcpreply, target, text)
 
-    report "{#{target}} [Reply: #{@me} #{text}]" unless @silent
+    report "{#{target}} [Reply: #{@me} #{text}]" unless @log_silent
     notice(target, "\001#{text}\001")
   end
 
