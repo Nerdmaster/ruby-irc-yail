@@ -1,7 +1,6 @@
 High priority
 =============
 
-* Look into problem with ERROR events from server - not being detected properly
 * Allow secure connections - also steal from Ruby-IRC :P (sorry pope)
 * Maybe rename events from IncomingEvent to IRCServerEvent and OutgoingEvent to IRCClientEvent since
   that actually describes protocol and originator.  Then add CustomEvent for things like :irc_loop.
