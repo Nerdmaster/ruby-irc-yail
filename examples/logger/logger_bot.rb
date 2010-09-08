@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 require 'rubygems'
-require 'net/yail/IRCBot'
+require 'net/yail/irc_bot'
 require 'date'
 
 class LoggerBot < IRCBot
