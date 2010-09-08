@@ -600,6 +600,9 @@ class YAIL
       when :incoming_nick
         handle(event.type, event.fullname, event.nick, event.text)
 
+      when :incoming_error
+        handle(event.type, event.text)
+
       # Unknown line!
       else
         # This should really never happen, but isn't technically an error per se

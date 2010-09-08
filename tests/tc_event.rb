@@ -224,4 +224,11 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal ['foo'], event.targets
     assert_equal '+k', event.text
   end
+
+  # Simple test of error event
+  def test_error
+    event = Net::YAIL::IncomingEvent.parse 'ERROR :Closing Link: nerdbucket.com (Quit: Terminated by user)'
+    assert_equal :incoming_error, event.type
+    assert_equal 'Closing Link: nerdbucket.com (Quit: Terminated by user)', event.text
+  end
 end
