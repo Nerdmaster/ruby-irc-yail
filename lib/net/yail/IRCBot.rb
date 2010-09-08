@@ -7,30 +7,34 @@ class IRCBot
 
   public
 
-  # Creates a new bot yay.  Note that due to my laziness, the options here
-  # are almost exactly the same as those in Net::YAIL.  But at least there
-  # are more defaults here.
-  #
-  # Options:
-  # * <tt>:irc_network</tt>: Name/IP of the IRC server
-  # * <tt>:channels</tt>: Channels to automatically join on connect
+  # Creates a new bot.  Options are anything you can pass to the Net::YAIL constructor:
+  # * <tt>:irc_network</tt>: Name/IP of the IRC server - backward-compatibility hack, and is
+  #   ignored if :address is passed in
+  # * <tt>:address</tt>: Name/IP of the IRC server
   # * <tt>:port</tt>: Port number, defaults to 6667
   # * <tt>:username</tt>: Username reported to server
   # * <tt>:realname</tt>: Real name reported to server
   # * <tt>:nicknames</tt>: Array of nicknames to cycle through
-  # * <tt>:silent</tt>: Silence a lot of reports
-  # * <tt>:loud</tt>: Lots more verbose reports
+  # * <tt>:throttle_seconds</tt>: Seconds between a cycle of privmsg sends.
+  #   Defaults to 1.  One "cycle" is defined as sending one line of output to
+  #   *all* targets that have output buffered.
+  # * <tt>:server_password</tt>: Very optional.  If set, this is the password
+  #   sent out to the server before USER and NICK messages.
+  # * <tt>:log</tt>: Optional, if set uses this logger instead of the default (Ruby's Logger).
+  #   If set, :loud and :silent options are ignored.
+  # * <tt>:log_io</tt>: Optional, ignored if you specify your own :log - sends given object to
+  #   Logger's constructor.  Must be filename or IO object.
   def initialize(options = {})
     @start_time = Time.now
+    @options = options
 
-    @channels = options[:channels] || []
-    @irc_network = options[:irc_network]
-    @port = options[:port] || 6667
-    @username = options[:username] || 'IRCBot'
-    @realname = options[:realname] || 'IRCBot'
-    @nicknames = options[:nicknames] || ['IRCBot1', 'IRCBot2', 'IRCBot3']
-    @silent = options[:silent] || false
-    @loud = options[:loud] || false
+    # Set up some friendly defaults
+    @options[:address]    ||= @options.delete(:irc_network)
+    @options[:channels]   ||= []
+    @options[:port]       ||= 6667
+    @options[:username]   ||= 'IRCBot'
+    @options[:realname]   ||= 'IRCBot'
+    @options[:nicknames]  ||= ['IRCBot1', 'IRCBot2', 'IRCBot3']
   end
 
   # Returns a string representing uptime
@@ -54,15 +58,7 @@ class IRCBot
   # welcome handler.  Subclasses should build their hooks in
   # add_custom_handlers to allow auto-creation in case of a restart.
   def connect_socket
-    @irc = Net::YAIL.new(
-      :address    => @irc_network,
-      :port       => @port,
-      :username   => @username,
-      :realname   => @realname,
-      :nicknames  => @nicknames,
-      :silent     => @silent,
-      :loud       => @loud
-    )
+    @irc = Net::YAIL.new(@options)
 
     # Simple hook for welcome to allow auto-joining of the channel
     @irc.prepend_handler :incoming_welcome, self.method(:welcome)
@@ -121,6 +117,11 @@ class IRCBot
   ################
   # Helpful wrappers
   ################
+
+  # Wraps Net::YAIL.log
+  def log
+    @irc.log
+  end
 
   # Wraps Net::YAIL.me
   def bot_name
