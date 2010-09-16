@@ -1,3 +1,14 @@
+1.4.3
+=====
+
+New
+---
+
+* Support for SSL!  This is highly experimental as I know nothing of SSL.  I'm literally trying to
+  steal the code from Ruby-IRC that does SSL and make it work with YAIL.  If it doesn't, please let
+  me know and maybe I'll try to fix it.  At the moment I don't even know a good way to *test* this
+  feature.
+
 1.4.2
 =====
 
