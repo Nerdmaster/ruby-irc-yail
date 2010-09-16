@@ -290,6 +290,7 @@ class YAIL
   #   If set, :loud and :silent options are ignored.
   # * <tt>:log_io</tt>: Optional, ignored if you specify your own :log - sends given object to
   #   Logger's constructor.  Must be filename or IO object.
+  # * <tt>:use_ssl</tt>: Defaults to false.  If true, attempts to use SSL for connection.
   def initialize(options = {})
     @me                 = ''
     @nicknames          = options[:nicknames]
@@ -302,6 +303,7 @@ class YAIL
     @log_loud           = options[:loud] || false
     @throttle_seconds   = options[:throttle_seconds] || 1
     @password           = options[:server_password]
+    @ssl                = options[:use_ssl] || false
 
     # Special handling to avoid mucking with Logger constants if we're using a different logger
     if options[:log]
@@ -331,6 +333,7 @@ class YAIL
     # Build our socket - if something goes wrong, it's immediately a dead socket.
     begin
       @socket = TCPSocket.new(@address, @port)
+      setup_ssl if @ssl
     rescue StandardError => boom
       @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
       @dead_socket = true
@@ -418,11 +421,32 @@ class YAIL
 
   private
 
+  # If user asked for SSL, this is where we set it all up
+  def setup_ssl
+    require 'openssl'
+    ssl_context = OpenSSL::SSL::SSLContext.new()
+    ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    @socket = OpenSSL::SSL::SSLSocket.new(tcpsocket, ssl_context)
+    @socket.sync = true
+    @socket.connect
+  end
+
+  # Depending on protocol (SSL vs. not), reads atomic events from socket.  This could be the
+  # start of more generic message reading for other protocols, but for now reads a single line
+  # for IRC and any number of lines from SSL IRC.
+  def read_socket_events
+    # Simple non-ssl socket == return a single line
+    return [@socket.gets.chomp] unless @ssl
+
+    # SSL socket == return all lines available, making sure to chomp them
+    return @socket.readpartial(Buffering::BLOCK_SIZE).split($/).collect {|message| message.chomp}
+  end
+
   # Reads incoming data - should only be called by io_loop, and only when
   # we've already ensured that data is, in fact, available.
   def read_incoming_data
     begin
-      line = @socket.gets
+      messages = read_socket_messages
     rescue StandardError => boom
       @dead_socket = true
       @log.fatal "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}"
@@ -430,19 +454,20 @@ class YAIL
     end
 
     # If we somehow got no data here, the socket is closed.  Run away!!!
-    if !line
+    if !messages || messages.empty?
       @dead_socket = true
       return
     end
 
-    line.chomp!
+    # Chomp and push each message
+    for message in messages
+      @log.debug "+++INCOMING: #{message.inspect}"
 
-    @log.debug "+++INCOMING: #{line}"
-
-    # Only synchronize long enough to push our incoming string onto the
-    # input buffer
-    @input_buffer_mutex.synchronize do
-      @input_buffer.push(line)
+      # Only synchronize long enough to push our incoming string onto the
+      # input buffer
+      @input_buffer_mutex.synchronize do
+        @input_buffer.push(line)
+      end
     end
   end
 

@@ -24,6 +24,7 @@ class IRCBot
   #   If set, :loud and :silent options are ignored.
   # * <tt>:log_io</tt>: Optional, ignored if you specify your own :log - sends given object to
   #   Logger's constructor.  Must be filename or IO object.
+  # * <tt>:use_ssl</tt>: Defaults to false.  If true, attempts to use SSL for connection.
   def initialize(options = {})
     @start_time = Time.now
     @options = options
