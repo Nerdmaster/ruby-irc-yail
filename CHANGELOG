@@ -5,9 +5,10 @@ New
 ---
 
 * Support for SSL!  This is highly experimental as I know nothing of SSL.  I'm literally trying to
-  steal the code from Ruby-IRC that does SSL and make it work with YAIL.  If it doesn't, please let
-  me know and maybe I'll try to fix it.  At the moment I don't even know a good way to *test* this
-  feature.
+  steal the code from Ruby-IRC that does SSL and make it work with YAIL.  So far it doesn't seem to
+  be working quite right - it's always one message behind for some reason.  This means on a channel
+  with activity, it'll respond to events one message late.  On a channel without much activity, it
+  can in fact miss pings and eventually is kicked off.  Help me!
 
 1.4.2
 =====
