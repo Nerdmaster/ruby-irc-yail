@@ -426,27 +426,27 @@ class YAIL
     require 'openssl'
     ssl_context = OpenSSL::SSL::SSLContext.new()
     ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    @socket = OpenSSL::SSL::SSLSocket.new(tcpsocket, ssl_context)
+    @socket = OpenSSL::SSL::SSLSocket.new(@socket, ssl_context)
     @socket.sync = true
     @socket.connect
   end
 
-  # Depending on protocol (SSL vs. not), reads atomic events from socket.  This could be the
+  # Depending on protocol (SSL vs. not), reads atomic messages from socket.  This could be the
   # start of more generic message reading for other protocols, but for now reads a single line
   # for IRC and any number of lines from SSL IRC.
-  def read_socket_events
+  def read_socket_messages
     # Simple non-ssl socket == return a single line
-    return [@socket.gets.chomp] unless @ssl
+    return [@socket.gets] unless @ssl
 
-    # SSL socket == return all lines available, making sure to chomp them
-    return @socket.readpartial(Buffering::BLOCK_SIZE).split($/).collect {|message| message.chomp}
+    # SSL socket == return all lines available
+    return @socket.readpartial(Buffering::BLOCK_SIZE).split($/).collect {|message| message}
   end
 
   # Reads incoming data - should only be called by io_loop, and only when
   # we've already ensured that data is, in fact, available.
   def read_incoming_data
     begin
-      messages = read_socket_messages
+      messages = read_socket_messages.compact
     rescue StandardError => boom
       @dead_socket = true
       @log.fatal "+++ERROR in read_incoming_data -> @socket.gets: #{boom.inspect}"
@@ -461,12 +461,13 @@ class YAIL
 
     # Chomp and push each message
     for message in messages
+      message.chomp!
       @log.debug "+++INCOMING: #{message.inspect}"
 
       # Only synchronize long enough to push our incoming string onto the
       # input buffer
       @input_buffer_mutex.synchronize do
-        @input_buffer.push(line)
+        @input_buffer.push(message)
       end
     end
   end
