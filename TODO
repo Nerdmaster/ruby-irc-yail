@@ -11,10 +11,10 @@ API changes:
 Deprecating prepend_handler in favor of before_filter, set_callback, and after_filter.
 prepend_handler and current event system stay in for a while, but won't last forever....
 
-Related to above: callback and filters no longer have the ability to stop the action
-chain.  More akin to a more typical plugin architecture, you have filters that always run, and
-as many as you like, then "core" functionality in the callback.  No breaking chain, no stopping
-other people's stuff from running.  Callbacks are the core code, the response to an action.  They
+Related to above: callback and filters must very explicitly break the chain, and it should
+only be done in very specific situations.
+
+Callbacks should be looked at as the core code, the response to an action.  They
 should be used to actually handle an event: a bot's "PRIVMSG #channel Hey there, bob" output on
 a "bob joins the channel" message.  Filters are more for behind-the-scenes stuff: responding to a
 PING, storing stats, logging, manipulating input/output, changing variables (bot's nickname on an
@@ -27,9 +27,9 @@ callback is lost, PERIOD.
 
 Looking at this like Rails, the callback would be the action, while filters would be... filters.
 Looking at it like wordpress, the callback is the core WP code, while the filters are your plugin
-actions.  One plugin author shouldn't be breaking another's ability to work.  Unlike Rails,
-filters will NOT be able to stop callbacks from happening.  Still considering this as a
-possibility, but not sure if I like that for an IRC app.
+actions.  One plugin author shouldn't be breaking another's ability to work.  Again, exceptions to
+every rule: for instance, an "ignore user" plugin could stop an event from ever reaching the
+handler.
 
 TODO for this change:
 ----------------------
@@ -107,6 +107,8 @@ master without worrying about new branch, version, etc)
 * Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
   chain.  Post-event filters would be okay if they were all registered in an optional library the
   user has to explicitly opt for.
+  * For 1.x, leave it in but refactor to make it an external library that's just automatically
+    included.  Pull it out only once 2.0 hits.
 
 Version 2.0
 ===========
