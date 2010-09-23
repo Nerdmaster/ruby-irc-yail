@@ -99,6 +99,22 @@ class MessageParserEventTest < Test::Unit::TestCase
 
     # First param in the message params list should still be nick
     assert_equal 'Towelie', event.msg.params.first
+
+    # This is a weird numeric causing errors for a user
+    event = Net::YAIL::IncomingEvent.parse(":irc.somehost.xx 322 user #CrAzY_MaNiCoMiCuM 12 :[+ntr] \253'\002\0033,3 \0030 I \0030,0 \0034T \0034,4 " +
+        "\0031A \0031,1\0038\273\0031,9 OrA NuOvO ErOtIcI Su FFTXL\0030,13 #CrAzY_MaNiCoMiCuM:\0032,4 QuI ReGnAnO PeR OrA I + PaZZi DeL WeB, " +
+        "\0031,8TuTTi AnCoRa In PRoVa..\0034M\00307w\00308a\00303H\00311u\0031 \0031,9PrEpArAtE Le RiChIeStE PeR Il RiCoVeRo a ViTa\0030,13PoStI " +
+        "LiBeRi!!\0031,4!PaZZi Da STaRe InSiEmE. :\336")
+    assert_equal 'irc.somehost.xx', event.from
+    assert_equal :incoming_322, event.type
+    assert_equal :incoming_numeric, event.parent.type
+    assert_equal 'user', event.target
+    assert_equal ['#CrAzY_MaNiCoMiCuM', '12'], event.parameters[0..1]
+    assert event.server?
+    assert_equal "#CrAzY_MaNiCoMiCuM 12 [+ntr] \253'\002\0033,3 \0030 I \0030,0 \0034T \0034,4 \0031A \0031,1\0038\273\0031,9 OrA NuOvO " +
+        "ErOtIcI Su FFTXL\0030,13 #CrAzY_MaNiCoMiCuM:\0032,4 QuI ReGnAnO PeR OrA I + PaZZi DeL WeB, \0031,8TuTTi AnCoRa In PRoVa..\0034M" +
+        "\00307w\00308a\00303H\00311u\0031 \0031,9PrEpArAtE Le RiChIeStE PeR Il RiCoVeRo a ViTa\0030,13PoStI LiBeRi!!\0031,4!PaZZi Da " +
+        "STaRe InSiEmE. :\336", event.text
   end
 
   # Test an invite
