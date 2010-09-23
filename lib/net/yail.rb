@@ -178,24 +178,34 @@ module Net
 #
 #   require 'rubygems'
 #   require 'net/yail'
-#
+#   
 #   irc = Net::YAIL.new(
-#     :address    => 'irc.someplace.co.uk',
-#     :username   => 'Frakking Bot',
-#     :realname   => 'John Botfrakker',
-#     :nicknames  => ['bot1', 'bot2', 'bot3']
+#     :address    => 'irc.server.com',
+#     :username   => 'test',
+#     :realname   => 'test name',
+#     :nicknames  => ['test1', 'test2']
 #   )
-#
-#   irc.prepend_handler :incoming_welcome, proc {|text, args|
-#     irc.join('#foo')
+#   
+#   # Get list of channels after MOTD is done
+#   irc.prepend_handler :incoming_endofmotd, proc {|text, args|
+#     irc.list
+#     return false
+#   }
+#   
+#   # When incoming channels are listed, print out the data
+#   irc.prepend_handler :incoming_list, proc {|text, args|
+#     puts "-------- got a channel: #{text}"
 #     return false
 #   }
 #
 #   irc.start_listening
+#
+#   # Loop forever!
 #   while irc.dead_socket == false
 #     # Avoid major CPU overuse by taking a very short nap
 #     sleep 0.05
 #   end
+#   
 #
 # Now we've built a simple IRC listener that will connect to a (probably
 # invalid) network, identify itself, and sit around waiting for the welcome
@@ -218,12 +228,11 @@ module Net
 #     :nicknames  => ['bot1', 'bot2', 'bot3']
 #   )
 #
+#   # Do our join immediately after we get the welcome message
 #   irc.prepend_handler :incoming_welcome, method(:welcome)
-#   irc.start_listening
-#   while irc.dead_socket == false
-#     # Avoid major CPU overuse by taking a very short nap
-#     sleep 0.05
-#   end
+#
+#   # Listen for input and loop forever until CTRL+C is pressed
+#   irc.start_listening!
 #
 # =Better example
 #
