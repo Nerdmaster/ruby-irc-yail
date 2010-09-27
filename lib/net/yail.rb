@@ -257,20 +257,20 @@ class YAIL
   )
 
   def silent
-    @log.warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#silent is deprecated as of 1.4.1 - .log can be used instead'
     return @log_silent
   end
   def silent=(val)
-    @log.warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#silent= is deprecated as of 1.4.1 - .log can be used instead'
     @log_silent = val
   end
 
   def loud
-    @log.warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#loud is deprecated as of 1.4.1 - .log can be used instead'
     return @log_loud
   end
   def loud=(val)
-    @log.warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1'
+    @log.warn '[DEPRECATED] - Net::YAIL#loud= is deprecated as of 1.4.1 - .log can be used instead'
     @log_loud = val
   end
 
@@ -331,7 +331,7 @@ class YAIL
     end
 
     if (options[:silent] || options[:loud])
-      @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
+      @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1 - instead access <yail object>.log.level'
     end
 
     # Read in map of event numbers and names.  Yes, I stole this event map
