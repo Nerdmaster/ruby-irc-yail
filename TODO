@@ -8,7 +8,7 @@ Version 1.5
 API changes:
 ------------
 
-Deprecating prepend_handler in favor of before_filter, set_callback, and after_filter.
+Deprecating prepend_handler in favor of before_filter, set_handler, and after_filter.
 prepend_handler and current event system stay in for a while, but won't last forever....
 
 Related to above: callback and filters must very explicitly break the chain, and it should
@@ -22,7 +22,7 @@ PING, storing stats, logging, manipulating input/output, changing variables (bot
 
 A plugin could use a filter where one isn't really appropriate, and this may make sense for a
 plugin built for a very specific purpose - but the *final* program should be the only thing that
-registers the callback, because there can be only one.  When you call set_callback, any previous
+registers the callback, because there can be only one.  When you call set_handler, any previous
 callback is lost, PERIOD.
 
 Looking at this like Rails, the callback would be the action, while filters would be... filters.
@@ -54,7 +54,7 @@ master without worrying about new branch, version, etc)
     * User could add his own.
     * All filters always run - no breaking the chain!
   * User normally registers a single callback - this is the definitive handler for a given IRC event.
-    * New method, set_callback or similar.  Basically overwrites handler for a given event.
+    * New method, set_handler or similar.  Basically overwrites handler for a given event.
     * Deprecate prepend_handler code - give warning to $stderr, even.
   * Callbacks should be used for things like a bot that does a certain action when his name is
     spoken in a channel, for instance - an actual handling of the event.
