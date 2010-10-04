@@ -1,6 +1,84 @@
 High priority
 =============
 
+* Make subclass of BaseEvent for custom events - simple accessor for type and maybe a data hash
+* Make events more like a plugin kind of system.
+  * Each event can have pre-callback and post-callback filters.
+    * These would include internal things like the handling of changing bot's nick.
+    * User could add his own.
+    * All after-filters always run - no breaking the chain!
+  * User normally registers a single callback - this is the definitive handler for a given IRC event.
+    * New method, set_handler or similar.  Basically overwrites handler for a given event.
+    * Deprecate prepend_handler code - give warning to $stderr, even.
+  * Callbacks should be used for things like a bot that does a certain action when his name is
+    spoken in a channel, for instance - an actual handling of the event.
+  * Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
+  * Outgoing events need to be separate in some way because while they can be filtered, the default
+    handling has to remain for them to work!
+    * Make a better OutgoingEvent system - they aren't events, they're commands, and they can't be
+      "handled".  We can have filters before they're sent, but technically the handler is internal
+      and should not be bypassed.
+      * Create a new object for all commands in the output api - output function creates object
+        with raw data, but our internal handler spits out raw data to socket.  User can
+        filter or even cancel the event from happening, but cannot set up their own handler.
+  * Redo logger and dumbbot when this is ready
+  * Get all docs up to date:
+    * README.md
+    * yail.rb comments
+      * Most class-level comments have to be thrown out and rewritten from scratch :(
+    * YAIL-RDOC
+      * Maybe get rid of this and just have "main" page in rdoc be yail.rb?
+  * Build example plugin or two so this functionality isn't meaningless!  Speech filtering, ignore
+    (by hostmask regex or nick or whatever), command handler system (register commands, user enters
+    "!command" and handler hits) come to mind.
+  * Consider allowing a default of :incoming_xxx on callback, since those are only allowed for
+    incoming events, and even filters so only outgoing filters require explicit :outgoing_xxx
+    * Re-consider functional semantics like "before_say_xxx ..." for :outgoing_xxx filter, etc. -
+      less work for user than "add_before_filter(:outgoing_xxx ..."
+      * Filters: sending_xxx, sent_xxx, hearing_xxx, heard_xxx - not perfect, but somewhat intuitive
+      * Callback is easy: handle_xxx - THERE CAN BE ONLY ONE, and only for incoming events!
+      * Handling custom events would be manual:
+        * before_filter(:some_event_type, code)
+        * set_handler(:some_event_type) {|event| do_stuff(event);}
+        * after_filter(:some_event_type, code)
+* Allow user to specify some way to decide when to call parent event handler
+  * Use cases:
+    * User may register :incoming_msg handler and doesn't want to handle ctcp and action
+      * (today's YAIL acts this way - all events must be explicitly handled)
+    * User registers :incoming_ctcp and forever wants all children of that type to propagate up
+      * (today's YAIL has no way to do this)
+  * User registers events whose children always propagate up.
+    * Event parser builds events in a double-linked-list structure so it can register only the
+      parent, and we can travel *down* from there.
+* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
+  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
+  This is one place where API consistency (using .text and such) is less important than usability.
+  * Example: For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
+    * User is banning Towelie!*@*
+    * User is setting "+i" to #bots
+    * User is giving Doogles +v
+    * User is setting channel key to "foo"
+    * User is setting "-m" on #bots
+    * User is taking away Towelie's voice (-v)
+* New dispatch routine for above two ideas, called by process_input:
+  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
+    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
+  * Code:
+        def dispatch(event)
+          if (event.child.nil? || propagation.include?(event.type))
+            call_before_filters(event)
+            call_handler(event)
+            legacy_handler(event)  # this will house the legacy logic currently living in process_input
+            call_after_filters(event)
+            return
+          end
+          dispatch(event.child);
+        end
+* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
+  chain.  Post-event filters would be okay if they were all registered in an optional library the
+  user has to explicitly opt for.
+  * For 1.x, leave it in but refactor to make it an external library that's just automatically
+    included.  Pull it out only once 2.0 hits.
 
 Version 1.5
 ===========
@@ -31,84 +109,6 @@ actions.  One plugin author shouldn't be breaking another's ability to work.  Ag
 every rule: for instance, an "ignore user" plugin could stop an event from ever reaching the
 handler.
 
-TODO for this change:
-----------------------
-
-(NOTE: some of this stuff can be changed without affecting API - that stuff should be done in
-master without worrying about new branch, version, etc)
-
-* Fix events to give more useful output for :incoming_mode events - at the least, parse out the
-  various targets as some kind of hash.  Very complex mode-parsing may be necessary.
-  This is one place where API consistency (using .text and such) is less important than usability.
-  * Example: For the command ":User!foo@bar.com MODE #bots +bivk-mv Towelie!*@* Doogles foo Towelie"
-    * User is banning Towelie!*@*
-    * User is setting "+i" to #bots
-    * User is giving Doogles +v
-    * User is setting channel key to "foo"
-    * User is setting "-m" on #bots
-    * User is taking away Towelie's voice (-v)
-* Make subclass of BaseEvent for custom events - simple accessor for type and maybe a data hash
-* Make events more like a plugin kind of system.
-  * Each event can have pre-callback and post-callback filters.
-    * These would include internal things like the handling of changing bot's nick.
-    * User could add his own.
-    * All filters always run - no breaking the chain!
-  * User normally registers a single callback - this is the definitive handler for a given IRC event.
-    * New method, set_handler or similar.  Basically overwrites handler for a given event.
-    * Deprecate prepend_handler code - give warning to $stderr, even.
-  * Callbacks should be used for things like a bot that does a certain action when his name is
-    spoken in a channel, for instance - an actual handling of the event.
-  * Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
-  * Outgoing events need to be separate in some way because while they can be filtered, the default
-    handling has to remain for them to work!
-    * Make a better OutgoingEvent system - they aren't events, they're commands, and they can't be
-      "handled".  We can have filters before they're sent, but technically the handler is internal
-      and should not be bypassed.
-      * Create a new object for all commands in the output api - output function creates object
-        with raw data, but our internal handler spits out raw data to socket.  User can
-        filter or even cancel the event from happening, but cannot set up their own handler.
-  * Redo logger and dumbbot when this is ready
-  * Build example plugin or two so this functionality isn't meaningless!  Speech filtering, ignore
-    (by hostmask regex or nick or whatever), command handler system (register commands, user enters
-    "!command" and handler hits) come to mind.
-  * Consider allowing a default of :incoming_xxx on callback, since those are only allowed for
-    incoming events, and even filters so only outgoing filters require explicit :outgoing_xxx
-    * Re-consider functional semantics like "before_say_xxx ..." for :outgoing_xxx filter, etc. -
-      less work for user than "add_before_filter(:outgoing_xxx ..."
-      * Filters: sending_xxx, sent_xxx, hearing_xxx, heard_xxx - not perfect, but somewhat intuitive
-      * Callback is easy: handle_xxx - THERE CAN BE ONLY ONE, and only for incoming events!
-      * Handling custom events would be manual:
-        * before_filter(:some_event_type, code)
-        * set_handler(:some_event_type) {|event| do_stuff(event);}
-        * after_filter(:some_event_type, code)
-* Allow user to specify some way to decide when to call parent event handler
-  * Use cases:
-    * User may register :incoming_msg handler and doesn't want to handle ctcp and action
-      * (today's YAIL acts this way - all events must be explicitly handled)
-    * User registers :incoming_ctcp and forever wants all children of that type to propagate up
-      * (today's YAIL has no way to do this)
-  * User registers events whose children always propagate up.
-    * Event parser builds events in a double-linked-list structure so it can register only the
-      parent, and we can travel *down* from there.
-* New dispatch routine for above two ideas, called by process_input:
-  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
-    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
-  * Code:
-        def dispatch(event)
-          if (event.child.nil? || propagation.include?(event.type))
-            call_before_filters(event)
-            call_handler(event)
-            legacy_handler(event)  # this will house the legacy logic currently living in process_input
-            call_after_filters(event)
-            return
-          end
-          dispatch(event.child);
-        end
-* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
-  chain.  Post-event filters would be okay if they were all registered in an optional library the
-  user has to explicitly opt for.
-  * For 1.x, leave it in but refactor to make it an external library that's just automatically
-    included.  Pull it out only once 2.0 hits.
 
 Version 2.0
 ===========
@@ -116,6 +116,7 @@ Version 2.0
 When ready to change the API in a major way
 
 * Remove prepend_handler completely, remove all legacy code supporting it.
+* Kill old log @loud and @silent stuff
 
 Low priority
 ============
