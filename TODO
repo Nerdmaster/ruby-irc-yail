@@ -56,7 +56,7 @@ High priority
     * Re-consider functional semantics like "before_say_xxx ..." for :outgoing_xxx filter, etc. -
       less work for user than "add_before_filter(:outgoing_xxx ..."
       * Filters: sending_xxx, sent_xxx, hearing_xxx, heard_xxx - not perfect, but somewhat intuitive
-      * Callback is easy: handle_xxx - THERE CAN BE ONLY ONE, and only for incoming events!
+      * Callback is easy: on_xxx - THERE CAN BE ONLY ONE, and only for incoming events!
       * Handling custom events would be manual:
         * before_filter(:some_event_type, code)
         * set_callback(:some_event_type) {|event| do_stuff(event);}
