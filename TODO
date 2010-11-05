@@ -1,7 +1,44 @@
 High priority
 =============
 
+* New dispatch routine to deal with new event system:
+  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
+    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
+  * Dispatch is called on parent event.
+  * Code:
+        def dispatch(event)
+          if (event.child.nil? || propagation.include?(event.type))
+            call_before_filters(event)
+            call_handler(event)
+            legacy_handler(event)  # this will house the legacy logic currently living in process_input
+            call_after_filters(event)
+            return
+          end
+          dispatch(event.child);
+        end
 * Make subclass of BaseEvent for custom events - simple accessor for type and maybe a data hash
+* Pull legacy handler stuff out of yail and include it separately
+* Figure out best approach for handling :incoming_any - custom event object probably, filters
+  only - no callback since you can't "handle" unknown data.  Handlers are for doing a specific task
+  once you have data.
+* Offer a way to let user specify when setting a handler that should be run for all children
+  of a given event.
+  * That setting should raise an exception if any handler has already been set for a child of the
+    event.
+  * When setting a callback, an exception should be raised if a parent of the callback has already
+    been set up to handle all child events.
+  * Filters should always run for all child events, since they are meant to run without obstruction
+    and regardless of final callback.
+    * An ignore filter would be far more useful if it could just trap messages at the privmsg level,
+      for instance, rather than capturing message, action, ctcp, and so forth.  In that case, ignore
+      filter stops all further filtering and any callback that would have run.
+    * A stats gathering filter may be similar in that it only cares about the privmsg level, but it
+      doesn't want to stop any act-level filtering that may be set up.
+    * However, we don't *ever* want the same filter to run for an event multiple times!  If we have
+      set a function to catch privmsg and do something, we don't want to hit it for the parent event
+      (privmsg), then again for the ctcp event (child of privmsg) and then *again* for the act
+      event (child of ctcp).
+
 * Make events more like a plugin kind of system.
   * Each event can have pre-callback and post-callback filters.
     * These would include internal things like the handling of changing bot's nick.
@@ -60,20 +97,6 @@ High priority
     * User is setting channel key to "foo"
     * User is setting "-m" on #bots
     * User is taking away Towelie's voice (-v)
-* New dispatch routine for above two ideas, called by process_input:
-  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
-    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
-  * Code:
-        def dispatch(event)
-          if (event.child.nil? || propagation.include?(event.type))
-            call_before_filters(event)
-            call_handler(event)
-            legacy_handler(event)  # this will house the legacy logic currently living in process_input
-            call_after_filters(event)
-            return
-          end
-          dispatch(event.child);
-        end
 * Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
   chain.  Post-event filters would be okay if they were all registered in an optional library the
   user has to explicitly opt for.
