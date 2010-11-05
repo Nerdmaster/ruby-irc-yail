@@ -370,7 +370,6 @@ class YAIL
     # Buffered output is allowed to go out right away.
     @next_message_time = Time.now
     # Setup handlers
-    @handlers = Hash.new
     @before_filters = Hash.new
     @after_filters = Hash.new
     @callback = Hash.new
