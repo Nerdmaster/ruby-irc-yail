@@ -494,7 +494,7 @@ class YAIL
   end
 
   # This should be called from a thread only!  Does nothing but listens
-  # forever for incoming data, and calling handlers due to this listening
+  # forever for incoming data, and calling filters/callback due to this listening
   def io_loop
     loop do
       # if no data is coming in, don't block the socket!
@@ -583,9 +583,9 @@ class YAIL
 
   public
   # Prepends the given block or method to the before_filters array for the given type.  Before-filters are called
-  # before the event handler has run, and can stop the event (and other filters) from running by calling the event's
+  # before the event callback has run, and can stop the event (and other filters) from running by calling the event's
   # end_chain() method.  Filters shouldn't do this very often!  Before-filtering can modify output text before the
-  # event handler runs, ignore incoming events for a given user, etc.
+  # event callback runs, ignore incoming events for a given user, etc.
   def before_filter(event_type, method = nil, &block)
     filter = block_given? ? block : method
     if filter
@@ -597,15 +597,15 @@ class YAIL
   # Sets up the callback for the given incoming event type.  Note that unlike Net::YAIL 1.5.0 and prior, there is no
   # longer a concept of multiple callbacks!  Use filters for that kind of functionality.  Think this way: the callback
   # is the action that takes place when an event hits.  Filters are for functionality related to the event, but not
-  # the definitive handler - logging, filtering messages, stats gathering, ignoring messages from a set user, etc.
-  def set_handler(event_type, method = nil, &block)
+  # the definitive callback - logging, filtering messages, stats gathering, ignoring messages from a set user, etc.
+  def set_callback(event_type, method = nil, &block)
     callback = block_given? ? block : method
     @callback[event_type] = callback
     @callback.delete(event_type) unless callback
   end
 
   # Prepends the given block or method to the after_filters array for the given type.  After-filters are called after
-  # the event handler has run, and cannot stop other after-filters from running.  Best used for logging or statistics
+  # the event callback has run, and cannot stop other after-filters from running.  Best used for logging or statistics
   # gathering.
   def after_filter(event_type, method = nil, &block)
     filter = block_given? ? block : method
