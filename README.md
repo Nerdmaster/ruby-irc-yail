@@ -1,4 +1,5 @@
-The latest stable release's documentation is always at [Nerdbucket.com](http://ruby-irc-yail.nerdbucket.com/).
+**This document is not necessarily going to reflect the latest *stable* YAIL!** The latest stable release's
+documentation is always at [Nerdbucket.com](http://ruby-irc-yail.nerdbucket.com/).
 
 Net::YAIL is a library built for dealing with IRC communications in Ruby.
 This is a project I've been building on and off since 2005 or so, based
@@ -42,6 +43,9 @@ check out the IRCBot source code.  Below is just a very simple example:
     # Another way to register a block - note that this clobbers the prior callback
     irc.set_callback(:incoming_invite) { |event| irc.join(event.channel) }
 
+    # Filter for all incoming pings so we can log them
+    irc.hear_ping {|event| $stderr.puts event.inspect}
+
     # Loops forever here until CTRL+C is hit.
     irc.start_listening!
 
@@ -71,24 +75,26 @@ building a module to ignore events from specific users).  Filters should be
 looked at as the hooks to be used when wanting to see an event, but shouldn't
 generally be the final callback of an event.
 
-Shortcut methods:
+Callback and filter methods:
 
-* on_xxx: Replace "xxx" with one of the incoming callback names, such as
-  "welcome", "join", etc.  This method takes a proc object or a block, and
-  overwrites the callback for the given event with what is sent in.
-* set_callback(:xxx): This is what on_xxx() eventually calls to set up the
-  callback - on_xxx() is merely a simpler way to deal with the most common
-  case, handling an incoming event.  Using set_callback(), you can also handle
-  custom events and, if you don't mind getting your hands dirty, handling
-  outgoing events.
-* before_filter(:xxx), after_filter(:xxx): These create a filter for any event,
-  and as above take a proc object or a block.  As many filters as desired may
-  be created for an event.  A before_filter() call could be used to actually
-  modify the data that gets sent to the callback, while an after_filter() would
-  make more sense for something like logging or gathering stats only for events
-  that make it through the callback.
-TODO: Finish up here!
-* hear
+* set_callback(:xxx): Replaces the existing handler (if any) for the given event with the block or proc object passed
+  in.  Replace "xxx" with the callback name, such as :incoming_welcome, :outgoing_kick, etc.  This is typically going
+  to be used for incoming and custom events, but if you don't mind getting your hands dirty with raw IRC commands,
+  you can also overwrite the outgoing handlers this way.
+* before_filter(:xxx), after_filter(:xxx): These create a filter for any event, and as above take a proc object or a
+  block.  As many filters as desired may be created for an event.  A before_filter() call could be used to actually
+  modify the data that gets sent to the callback, while an after_filter() would make more sense for something like
+  logging or gathering stats only for events that make it through the callback.
+
+Shortcut methods make the common operations take a bit less typing, and are hopefully intuitive enough that you don't
+lose anything by using them.  They are all used similarly to set_callback, before_filter, and after_filter, but with
+the event name as part of the method.  They must be given a proc object or a block.
+
+* on_xxx: Sets a callback for an incoming event, so on_join will be the same as called set_callback(:incoming_join)
+* hearing_xxx: Creates a before-filter on incoming event xxx.  This is the same as calling before_filter(:incoming_xxx)
+* heard_xxx: Creates an after-filter on incoming event xxx.  This is the same as calling after_filter(:incoming_xxx)
+* saying_xxx: Creates a before-filter on outgoing event xxx.  This is the same as calling before_filter(:outgoing_xxx)
+* said_xxx: Creates an after-filter on outgoing event xxx.  This is the same as calling after_filter(:outgoing_xxx)
 
 Features of YAIL:
 ========
