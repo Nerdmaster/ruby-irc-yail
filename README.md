@@ -44,7 +44,7 @@ check out the IRCBot source code.  Below is just a very simple example:
     irc.set_callback(:incoming_invite) { |event| irc.join(event.channel) }
 
     # Filter for all incoming pings so we can log them
-    irc.hear_ping {|event| $stderr.puts event.inspect}
+    irc.hearing_ping {|event| $stderr.puts event.inspect}
 
     # Loops forever here until CTRL+C is hit.
     irc.start_listening!
