@@ -6,12 +6,30 @@ class YAIL
   # Base event class for stuff shared by any type of event.  Note that :type and :handled
   # apply to *all* events, so they're explicitly defined here.
   class BaseEvent
-    attr_reader :type, :handled
-
-    # Creates an event object and sets up some sane defaults for common elements
-    def initialize()
+    # Creates an event object and sets up some sane defaults for common elements.  Any elements
+    # in the data hash are converted to "magic" methods.
+    def initialize(data = {})
+      # Don't modify incoming data!
+      @data = data.dup
       @handled = false
-      @type = nil
+      @type = @data.delete(:type)
+
+      # Give useful accessors in a hacky but fun way!  I can't decide if I prefer the pain of
+      # using method_missing or the pain of not knowing how to do this without a string eval....
+      for key in @data.keys
+        key = key.to_s
+        self.instance_eval("def #{key}; return @data[:#{key}]; end")
+      end
+    end
+
+    # Helps us debug
+    def to_s
+      return super().gsub(self.class.name, "%s [%s]" % [self.class.name, @type.to_s])
+    end
+
+    # We don't allow BaseEvent objects, and since type is the key, we filter here
+    def type
+      raise "BaseEvent not usable - please subclass"
     end
 
     # Unintuitive name to avoid accidental use - we don't want it to be the norm to stop the event
@@ -29,6 +47,11 @@ class YAIL
     def type
       return :"outgoing_#{@type.to_s}"
     end
+  end
+
+  # Custom event is just a base event that doesn't crash when accessing type :)
+  class CustomEvent < BaseEvent
+    def type; return @type; end
   end
 
   # This is the incoming event class.  For all situations where the server
@@ -60,27 +83,14 @@ class YAIL
     attr_reader :raw, :msg
     private_class_method :new
 
-    # Sets up data and accessors
+    # Incoming events always have :raw and :msg in the data hash
     def initialize(data = {})
-      super()
-
       # Don't modify incoming element!
       @data = data.dup
       @raw = @data.delete(:raw)
       @msg = @data.delete(:msg)
-      @type = @data.delete(:type)
 
-      # Give useful accessors in a hacky but fun way!  I can't decide if I prefer the pain of
-      # using method_missing or the pain of not knowing how to do this without a string eval....
-      for key in @data.keys
-        key = key.to_s
-        self.instance_eval("def #{key}; return @data[:#{key}]; end")
-      end
-    end
-
-    # Helps us debug
-    def to_s
-      return super().gsub('IncomingEvent', "IncomingEvent[#{@type.to_s}]")
+      super(data)
     end
 
     # Incoming events in our system are always :incoming_xxx
