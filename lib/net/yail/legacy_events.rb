@@ -12,7 +12,7 @@ module LegacyEvents
   def prepend_handler(event, *procs, &block)
     raise "Cannot change handlers while threads are listening!" if @ioloop_thread
 
-    @handlers ||= Hash.new
+    @legacy_handlers ||= Hash.new
 
     @log.warn "[DEPRECATED] - Net::YAIL#prepend_handler is deprecated as of 1.5.0 - please see documentation on the new " +
         "event handling model methods - http://ruby-irc-yail.nerdbucket.com/"
@@ -28,24 +28,24 @@ module LegacyEvents
       event = :"incoming_numeric_#{number}" if number > 0
     end
 
-    @handlers[event] ||= Array.new
+    @legacy_handlers[event] ||= Array.new
     until procs.empty?
-      @handlers[event].unshift(procs.pop)
+      @legacy_handlers[event].unshift(procs.pop)
     end
   end
 
-  # Handles the given event (if it's in the @handlers array) with the
+  # Handles the given event (if it's in the @legacy_handlers array) with the
   # arguments specified.
   #
-  # The @handlers must be a hash where key = event to handle and value is
+  # The @legacy_handlers must be a hash where key = event to handle and value is
   # a Proc object (via Class.method(:name) or just proc {...}).
   # This should be fine if you're setting up handlers with the prepend_handler
   # method, but if you get "clever," you're on your own.
   def handle(event, *arguments)
     # Don't bother with anything if there are no handlers registered.
-    return unless Array === @handlers[event]
+    return unless Array === @legacy_handlers[event]
 
-    @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@handlers[event].inspect}:"
+    @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@legacy_handlers[event].inspect}:"
 
     # Call all hooks in order until one breaks the chain.  For incoming
     # events, we want something to break the chain or else it'll likely
@@ -53,7 +53,7 @@ module LegacyEvents
     # so no need to worry about ending the chain except when the bot wants
     # to take full control over them.
     result = false
-    for handler in @handlers[event]
+    for handler in @legacy_handlers[event]
       result = handler.call(*arguments)
       break if result == true
     end
@@ -66,7 +66,7 @@ module LegacyEvents
     # text, so let's make it easier by passing a hash instead of a list
     args = {:fullactor => fullactor, :actor => actor, :target => target}
     base_event = :"incoming_numeric_#{number}"
-    if Array === @handlers[base_event]
+    if Array === @legacy_handlers[base_event]
       handle(base_event, text, args)
     else
       # No handler = report and don't worry about it
@@ -78,8 +78,8 @@ module LegacyEvents
   def process_input(line)
     # Allow global handler to break the chain, filter the line, whatever.  For
     # this release, it's a hack.  2.0 will be better.
-    if (Array === @handlers[:incoming_any])
-      for handler in @handlers[:incoming_any]
+    if (Array === @legacy_handlers[:incoming_any])
+      for handler in @legacy_handlers[:incoming_any]
         result = handler.call(line)
         return if result == true
       end
