@@ -162,7 +162,8 @@ class YAIL
 
     # Buffered output is allowed to go out right away.
     @next_message_time = Time.now
-    # Setup handlers
+
+    # Setup callback/filter hashes
     @before_filters = Hash.new
     @after_filters = Hash.new
     @callback = Hash.new
@@ -195,9 +196,8 @@ class YAIL
     @input_processor = Thread.new {process_input_loop}
     @privmsg_processor = Thread.new {process_privmsg_loop}
 
-    # Let's begin the cycle by telling the server who we are.  This should
-    # start a TERRIBLE CHAIN OF EVENTS!!!
-    handle(:outgoing_begin_connection, @username, @address, @realname)
+    # Let's begin the cycle by telling the server who we are.  This should start a TERRIBLE CHAIN OF EVENTS!!!
+    dispatch OutgoingEvent.new(:type => :begin_connection, :username => @username, :address => @address, :realname => @realname)
   end
 
   # This starts the connection, threading, etc. as start_listening, but *forces* the user into
