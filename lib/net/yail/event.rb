@@ -34,7 +34,7 @@ class YAIL
 
     # Unintuitive name to avoid accidental use - we don't want it to be the norm to stop the event
     # handling chain anymore!  Filters + callback should make that a rarity.
-    def end_chain; @handled = true; end
+    def set_handled_true; @handled = true; end
 
     # Cheesy shortcut to @handled in "boolean" form
     def handled?; return @handled; end
