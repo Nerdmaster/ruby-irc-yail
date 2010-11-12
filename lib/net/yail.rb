@@ -440,6 +440,43 @@ class YAIL
   def report(*lines)
     lines.each {|line| $stdout.puts "(#{Time.now.strftime('%H:%M.%S')}) #{line}"}
   end
+
+  def dispatch(event)
+    # Allow global filtering before event goes anywhere
+    if (Array === @before_filters[:incoming_any])
+      for filter in @before_filters[:incoming_any]
+        filter.call(event)
+        return if event.handled?
+      end
+    end
+
+    # Add all before-callback stuff to our chain, then the callback itself last
+    chain = []
+    chain.push @before_filters[:incoming_any]
+    chain.push @before_filters[event.type]
+    chain.push @callback[event.type]
+    chain.flatten!
+    chain.compact!
+
+    # Run each filter in the chain, exiting early if event was handled
+    for filter in chain
+      filter.call(event)
+      return if event.handled?
+    end
+
+    # Legacy handler - return if true, since that's how the old system works
+    return if legacy_process_input(event)
+
+    # Add all after-callback stuff to a new chain
+    chain = []
+    chain.push @after_filters[event.type]
+    chain.push @after_filters[:incoming_any]
+    chain.flatten!
+    chain.compact!
+
+    # Run all after-filters blindly - none can affect callback, so after-filters can't set handled to true
+    chain.each {|filter| filter.call(event)}
+  end
 end
 
 end
