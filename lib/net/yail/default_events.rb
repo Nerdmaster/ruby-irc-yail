@@ -2,47 +2,9 @@ module Net
 module IRCEvents
 
 # This module contains all the default events handling - mainly for
-# reporting things or simple logic.  Users can put in their own event handlers
-# that return true and ignore these, so nothing in here should be truly
-# essential to a healthy IRC app.
+# reporting things or simple logic.  In 2.0, most of these will be removed.
 module Defaults
   private
-
-  # Sets up all the default handlers for events - just reporting things others
-  # don't handle in all but a few cases
-  def setup_default_handlers
-    # Incoming events
-    prepend_handler :incoming_msg,              self.method(:r_msg)
-    prepend_handler :incoming_act,              self.method(:r_act)
-    prepend_handler :incoming_notice,           self.method(:r_notice)
-    prepend_handler :incoming_ctcp,             self.method(:r_ctcp)
-    prepend_handler :incoming_ctcpreply,        self.method(:r_ctcpreply)
-    prepend_handler :incoming_mode,             self.method(:r_mode)
-    prepend_handler :incoming_join,             self.method(:r_join)
-    prepend_handler :incoming_part,             self.method(:r_part)
-    prepend_handler :incoming_kick,             self.method(:r_kick)
-    prepend_handler :incoming_quit,             self.method(:r_quit)
-    prepend_handler :incoming_nick,             self.method(:r_nick)
-    prepend_handler :incoming_miscellany,       self.method(:r_miscellany)
-
-    # Incoming numeric events here
-    prepend_handler :incoming_welcome,          self.method(:r_welcome)
-    prepend_handler :incoming_bannedfromchan,   self.method(:r_bannedfromchan)
-    prepend_handler :incoming_badchannelkey,    self.method(:r_badchannelkey)
-    prepend_handler :incoming_nicknameinuse,    self.method(:_nicknameinuse)
-    prepend_handler :incoming_channelurl,       self.method(:r_channelurl)
-    prepend_handler :incoming_topic,            self.method(:r_topic)
-    prepend_handler :incoming_topicinfo,        self.method(:r_topicinfo)
-    prepend_handler :incoming_namreply,         self.method(:_namreply)
-    prepend_handler :incoming_endofnames,       self.method(:r_endofnames)
-    prepend_handler :incoming_motd,             self.method(:r_motd)
-    prepend_handler :incoming_motdstart,        self.method(:r_motdstart)
-    prepend_handler :incoming_endofmotd,        self.method(:r_endofmotd)
-    prepend_handler :incoming_invite,           self.method(:r_invite)
-
-    # Outgoing events
-    prepend_handler :outgoing_begin_connection, self.method(:out_begin_connection)
-  end
 
   def r_msg(fullactor, actor, target, text)
     report "{#{target}} <#{actor}> #{text}"

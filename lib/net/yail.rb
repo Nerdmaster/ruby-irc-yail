@@ -153,7 +153,7 @@ class YAIL
 
     prepare_tcp_socket
 
-    setup_default_handlers
+    set_defaults
   end
 
   # Starts listening for input and builds the perma-threads that check for
@@ -172,10 +172,6 @@ class YAIL
     quithandler = lambda { quit('Terminated by user'); sleep 1; stop_listening; exit }
     trap("INT", quithandler)
     trap("TERM", quithandler)
-
-    # Build forced / magic logic - welcome setting @me, ping response, etc.
-    # Since we do these here, nobody can skip them and they're always first.
-    setup_magic_handlers
 
     # Begin the listening thread
     @ioloop_thread = Thread.new {io_loop}
@@ -219,6 +215,36 @@ class YAIL
   end
 
   private
+
+  # Sets up all default filters and callbacks
+  def set_defaults
+    # Set up reporting filters - this needs to be dropped, but for now centralizing it is best to avoid
+    # breaking the API (2.x WILL fix this, I swear!  ...unless it doesn't, of course)
+    incoming_reporting = [
+      :msg, :act, :notice, :ctcp, :ctcpreply, :mode, :join, :part, :kick,
+      :quit, :nick, :miscellany, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
+      :topicinfo, :endofnames, :motd, :motdstart, :endofmotd, :invite
+    ]
+    for event in incoming_reporting
+      after_filter(:"incoming_#{event}", self.method(:"r_#{event}") )
+    end
+
+    # Set up callbacks for slightly more important things than reporting - note that these should
+    # eventually be changed as they don't belong in the core of YAIL.  Note that since these are
+    # callbacks, the user can very easily overwrite them, at least.
+    on_nicknameinuse self.method(:_nicknameinuse)
+    on_namreply self.method(:_namreply)
+
+    # Set up truly core handlers/filters - these shouldn't be overridden unless users like to get
+    # their hands dirty
+    set_callback(:outgoing_begin_connection, self.method(:out_begin_connection))
+    on_ping self.method(:magic_ping)
+    on_welcome self.method(:magic_welcome)
+
+    # Nick change magically setting @me is necessary as a filter - user can handle the event and do
+    # anything he wants, but this should still run.
+    hearing_nick self.method(:magic_nick)
+  end
 
   # Prepares @socket for use and defaults @dead_socket to false
   def prepare_tcp_socket
