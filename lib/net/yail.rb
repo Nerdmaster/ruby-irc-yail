@@ -413,7 +413,7 @@ class YAIL
     end
   end
 
-  # Sets up the callback for the given incoming event type.  Note that unlike Net::YAIL 1.5.0 and prior, there is no
+  # Sets up the callback for the given incoming event type.  Note that unlike Net::YAIL 1.4.x and prior, there is no
   # longer a concept of multiple callbacks!  Use filters for that kind of functionality.  Think this way: the callback
   # is the action that takes place when an event hits.  Filters are for functionality related to the event, but not
   # the definitive callback - logging, filtering messages, stats gathering, ignoring messages from a set user, etc.
