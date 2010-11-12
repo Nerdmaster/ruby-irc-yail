@@ -477,6 +477,47 @@ class YAIL
     # Run all after-filters blindly - none can affect callback, so after-filters can't set handled to true
     chain.each {|filter| filter.call(event)}
   end
+
+  # Handles magic listener setup methods: on_xxx, hearing_xxx, heard_xxx, saying_xxx, and said_xxx
+  def method_missing(name, *args, &block)
+    method = nil
+    event_type = nil
+
+    case name
+      when /^on_(.*)$/
+        method = :set_callback
+        event_type = :"incoming_#{$1}"
+
+      when /^hearing_(.*)$/
+        method = :before_filter
+        event_type = :"incoming_#{$1}"
+
+      when /^heard_(.*)$/
+        method = :after_filter
+        event_type = :"incoming_#{$1}"
+
+      when /^saying_(.*)$/
+        method = :before_filter
+        event_type = :"outgoing_#{$1}"
+
+      when /^said_(.*)$/
+        method = :after_filter
+        event_type = :"outgoing_#{$1}"
+    end
+
+    # Magic methods MUST have an arg or a block!
+    filter_or_callback_method = block_given? ? block : args.shift
+
+    # If we didn't match a magic method signature, or we don't have the expected parameters, call
+    # parent's method_missing.  Just to be safe, we also return, in case YAIL one day subclasses
+    # from something that handles some method_missing stuff.
+    unless (method && event_type) || args.length.zero?
+      super
+      return
+    end
+
+    self.call(method, filter_or_callback_method)
+  end
 end
 
 end
