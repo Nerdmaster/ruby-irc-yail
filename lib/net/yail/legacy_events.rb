@@ -43,7 +43,7 @@ module LegacyEvents
   # method, but if you get "clever," you're on your own.
   def handle(event, *arguments)
     # Don't bother with anything if there are no handlers registered.
-    return unless Array === @legacy_handlers[event]
+    return false unless Array === @legacy_handlers[event]
 
     @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@legacy_handlers[event].inspect}:"
 
@@ -57,6 +57,9 @@ module LegacyEvents
       result = handler.call(*arguments)
       break if result == true
     end
+
+    # Let the new system deal with legacy handlers that wanted to end the chain
+    return result
   end
 
   # Since numerics are so many and so varied, this method will auto-fallback
@@ -67,7 +70,7 @@ module LegacyEvents
     args = {:fullactor => fullactor, :actor => actor, :target => target}
     base_event = :"incoming_numeric_#{number}"
     if Array === @legacy_handlers[base_event]
-      handle(base_event, text, args)
+      return handle(base_event, text, args)
     else
       # No handler = report and don't worry about it
       @log.info "Unknown raw #{number.to_s} from #{fullactor}: #{text}"
@@ -75,18 +78,15 @@ module LegacyEvents
   end
 
   # Gets some input, sends stuff off to a handler.  Yay.
-  def legacy_process_input(line)
+  def legacy_process_input(event)
     # Allow global handler to break the chain, filter the line, whatever.  For
     # this release, it's a hack.  2.0 will be better.
     if (Array === @legacy_handlers[:incoming_any])
       for handler in @legacy_handlers[:incoming_any]
-        result = handler.call(line)
-        return if result == true
+        result = handler.call(event.raw)
+        return true if true == result
       end
     end
-
-    # Use the exciting new-new parser
-    event = Net::YAIL::IncomingEvent.parse(line)
 
     # Partial conversion to using events - we still have a horrible case statement, but
     # we're at least using the event object.  Slightly less hacky than before.
@@ -98,14 +98,14 @@ module LegacyEvents
     case event.type
       # Ping is important to handle quickly, so it comes first.
       when :incoming_ping
-        handle(event.type, event.text)
+        return handle(event.type, event.text)
 
       when :incoming_numeric
         # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
         handle_numeric(event.numeric, event.servername, nil, event.target, event.text)
 
       when :incoming_invite
-        handle(event.type, event.fullname, event.nick, event.channel)
+        return handle(event.type, event.fullname, event.nick, event.channel)
 
       # Fortunately, the legacy handler for all five "message" types is the same!
       when :incoming_msg, :incoming_ctcp, :incoming_act, :incoming_notice, :incoming_ctcpreply
@@ -115,7 +115,7 @@ module LegacyEvents
 
         # Notices come from server sometimes, so... another merger for legacy fun!
         nick = event.server? ? '' : event.nick
-        handle(event.type, event.from, nick, target, event.text)
+        return handle(event.type, event.from, nick, target, event.text)
 
       # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
       # but let's not put hacks into the core Event object.  Modes need reworking soon anyway.
@@ -124,34 +124,34 @@ module LegacyEvents
       when :incoming_mode
         # Modes can come from the server, so legacy system again regularly sent nil data....
         nick = event.server? ? '' : event.nick
-        handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
+        return handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
 
       when :incoming_topic_change
-        handle(event.type, event.fullname, event.nick, event.channel, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.text)
 
       when :incoming_join
-        handle(event.type, event.fullname, event.nick, event.channel)
+        return handle(event.type, event.fullname, event.nick, event.channel)
 
       when :incoming_part
-        handle(event.type, event.fullname, event.nick, event.channel, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.text)
 
       when :incoming_kick
-        handle(event.type, event.fullname, event.nick, event.channel, event.target, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.target, event.text)
 
       when :incoming_quit
-        handle(event.type, event.fullname, event.nick, event.text)
+        return handle(event.type, event.fullname, event.nick, event.text)
 
       when :incoming_nick
-        handle(event.type, event.fullname, event.nick, event.text)
+        return handle(event.type, event.fullname, event.nick, event.text)
 
       when :incoming_error
-        handle(event.type, event.text)
+        return handle(event.type, event.text)
 
       # Unknown line!
       else
         # This should really never happen, but isn't technically an error per se
-        @log.warn 'Unknown line: %s!' % line.inspect
-        handle(:incoming_miscellany, line)
+        @log.warn 'Unknown line: %s!' % event.raw.inspect
+        return handle(:incoming_miscellany, event.raw)
     end
   end
 end
