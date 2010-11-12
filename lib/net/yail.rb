@@ -151,23 +151,7 @@ class YAIL
     eventmap = "#{File.dirname(__FILE__)}/yail/eventmap.yml"
     @event_number_lookup = File.open(eventmap) { |file| YAML::load(file) }.invert
 
-    # We're not dead... yet...
-    @dead_socket = false
-
-    # Build our socket - if something goes wrong, it's immediately a dead socket.
-    if @io
-      @socket = @io
-    else
-      begin
-        @socket = TCPSocket.new(@address, @port)
-        setup_ssl if @ssl
-      rescue StandardError => boom
-        @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
-        @dead_socket = true
-        raise
-      end
-    end
-
+    prepare_tcp_socket
 
     setup_default_handlers
   end
@@ -235,6 +219,21 @@ class YAIL
   end
 
   private
+
+  # Prepares @socket for use and defaults @dead_socket to false
+  def prepare_tcp_socket
+    @dead_socket = false
+
+    # Build our socket - if something goes wrong, it's immediately a dead socket.
+    begin
+      @socket = TCPSocket.new(@address, @port)
+      setup_ssl if @ssl
+    rescue StandardError => boom
+      @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
+      @dead_socket = true
+      raise
+    end
+  end
 
   # If user asked for SSL, this is where we set it all up
   def setup_ssl
