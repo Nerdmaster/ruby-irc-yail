@@ -16,16 +16,15 @@ High priority
           end
           dispatch(event.child);
         end
-* Make subclass of BaseEvent for custom events - simple accessor for type and maybe a data hash
 * Figure out best approach for handling :incoming_any - custom event object probably, filters
   only - no callback since you can't "handle" unknown data.  Callbacks are for doing a specific task
   once you have data.
 
 * Make events more like a plugin kind of system.
-  * Each event can have pre-callback and post-callback filters.
-    * These would include internal things like the handling of changing bot's nick.
-    * User could add his own.
-    * All after-filters always run - no breaking the chain!
+  X Each event can have pre-callback and post-callback filters.
+    X These would include internal things like the handling of changing bot's nick.
+    X User could add his own.
+    X All after-filters always run - no breaking the chain!
   X User normally registers a single callback - this is the definitive handler for a given IRC event.
     X New method, set_callback or similar.  Basically overwrites callback for a given event.
     X Deprecate prepend_handler code - give warning to $stderr, even.
@@ -61,12 +60,6 @@ High priority
         * before_filter(:some_event_type, code)
         * set_callback(:some_event_type) {|event| do_stuff(event);}
         * after_filter(:some_event_type, code)
-
-* Reporting should be an optional plugin *at most*.  Not required, and not part of the normal event
-  chain.  Post-event filters would be okay if they were all registered in an optional library the
-  user has to explicitly opt for.
-  * For 1.x, leave it in but refactor to make it an external library that's just automatically
-    included.  Pull it out only once 2.0 hits.
 
 Version 1.5
 ===========
@@ -141,6 +134,10 @@ When ready to change the API in a major way
       parent, and we can travel *down* from there.
 * Remove prepend_handler completely, remove all legacy code supporting it.
 * Kill old log @loud and @silent stuff
+* Remove filtering code from YAIL's initialize() - move to plugin user must explicitly include
+* Pull out nickname-in-use handler and make that only part of IRCBot, not YAIL
+* Simply store nicknames in default namreply handler - that is, kill all report() calls
+* Remove report() calls in magic events
 
 Low priority
 ============
