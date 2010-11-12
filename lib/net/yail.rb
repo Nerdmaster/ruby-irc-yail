@@ -113,6 +113,22 @@ class YAIL
     @password           = options[:server_password]
     @ssl                = options[:use_ssl] || false
 
+    # Shared resources for threads to try and coordinate....  I know very
+    # little about thread safety, so this stuff may be a terrible disaster.
+    # Please send me better approaches if you are less stupid than I.
+    @input_buffer = []
+    @input_buffer_mutex = Mutex.new
+    @privmsg_buffer = {}
+    @privmsg_buffer_mutex = Mutex.new
+
+    # Buffered output is allowed to go out right away.
+    @next_message_time = Time.now
+
+    # Setup callback/filter hashes
+    @before_filters = Hash.new
+    @after_filters = Hash.new
+    @callback = Hash.new
+
     # Special handling to avoid mucking with Logger constants if we're using a different logger
     if options[:log]
       @log = options[:log]
@@ -152,21 +168,7 @@ class YAIL
       end
     end
 
-    # Shared resources for threads to try and coordinate....  I know very
-    # little about thread safety, so this stuff may be a terrible disaster.
-    # Please send me better approaches if you are less stupid than I.
-    @input_buffer = []
-    @input_buffer_mutex = Mutex.new
-    @privmsg_buffer = {}
-    @privmsg_buffer_mutex = Mutex.new
 
-    # Buffered output is allowed to go out right away.
-    @next_message_time = Time.now
-
-    # Setup callback/filter hashes
-    @before_filters = Hash.new
-    @after_filters = Hash.new
-    @callback = Hash.new
     setup_default_handlers
   end
 
