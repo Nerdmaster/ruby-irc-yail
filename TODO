@@ -1,6 +1,9 @@
 High priority
 =============
 
+* Allow user to specify IO object for connection so TCPSocket can be overridden.  Write unit tests
+  after doing so, using mocked socket object.
+* Get event handling/filtering methods into a module to include - slightly cleaner I think
 * New dispatch routine to deal with new event system:
   * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
     callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
