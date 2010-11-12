@@ -337,11 +337,12 @@ class YAIL
         @input_buffer.clear
       end
 
-      if (lines)
+      if lines
         # Now actually handle the data we copied, secure in the knowledge
         # that our reader thread is no longer going to wait on us.
-        while lines.empty? == false
-          process_input(lines.shift)
+        until lines.empty?
+          event = Net::YAIL::IncomingEvent.parse(line)
+          dispatch(event)
         end
 
         lines = nil

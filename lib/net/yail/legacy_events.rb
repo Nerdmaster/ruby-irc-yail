@@ -75,7 +75,7 @@ module LegacyEvents
   end
 
   # Gets some input, sends stuff off to a handler.  Yay.
-  def process_input(line)
+  def legacy_process_input(line)
     # Allow global handler to break the chain, filter the line, whatever.  For
     # this release, it's a hack.  2.0 will be better.
     if (Array === @legacy_handlers[:incoming_any])
