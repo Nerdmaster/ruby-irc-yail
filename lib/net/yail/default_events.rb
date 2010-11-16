@@ -66,8 +66,6 @@ module Defaults
     report "*** Logged in as #{@me}. ***"
   end
 
-  def r_miscellany(line)
-    report "serv: #{line}"
   end
 
   # Nickname change failed: already in use.  This needs a rewrite to at

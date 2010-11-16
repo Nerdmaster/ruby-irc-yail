@@ -222,7 +222,7 @@ class YAIL
     # breaking the API (2.x WILL fix this, I swear!  ...unless it doesn't, of course)
     incoming_reporting = [
       :msg, :act, :notice, :ctcp, :ctcpreply, :mode, :join, :part, :kick,
-      :quit, :nick, :miscellany, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
+      :quit, :nick, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
       :topicinfo, :endofnames, :motd, :motdstart, :endofmotd, :invite
     ]
     for event in incoming_reporting
