@@ -62,7 +62,7 @@ class IRCBot
     @irc = Net::YAIL.new(@options)
 
     # Simple hook for welcome to allow auto-joining of the channel
-    @irc.prepend_handler :incoming_welcome, self.method(:welcome)
+    @irc.on_welcome self.method(:welcome)
 
     add_custom_handlers
   end
@@ -95,7 +95,7 @@ class IRCBot
     while true
       until @irc.dead_socket
         sleep 15
-        @irc.handle(:irc_loop)
+        @irc.dispatch CustomEvent.new(:type => :irc_loop)
         Thread.pass
       end
 
@@ -111,8 +111,6 @@ class IRCBot
   # Basic handler for joining our channels upon successful registration
   def welcome(text, args)
     @options[:channels].each {|channel| @irc.join(channel) }
-    # Let the default welcome stuff still happen
-    return false
   end
 
   ################
