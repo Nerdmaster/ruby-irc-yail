@@ -465,7 +465,7 @@ class YAIL
     end
 
     # Legacy handler - return if true, since that's how the old system works
-    return if legacy_process_input(event)
+    return if legacy_process_event(event)
 
     # Add all after-callback stuff to a new chain
     chain = []
