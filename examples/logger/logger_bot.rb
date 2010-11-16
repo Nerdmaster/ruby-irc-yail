@@ -42,10 +42,10 @@ class LoggerBot < IRCBot
   # Add hooks on startup (base class's start method calls add_custom_handlers)
   def add_custom_handlers
     # Set up hooks
-    @irc.prepend_handler(:incoming_msg,             self.method(:_in_msg))
-    @irc.prepend_handler(:incoming_act,             self.method(:_in_act))
-    @irc.prepend_handler(:incoming_invite,          self.method(:_in_invited))
-    @irc.prepend_handler(:incoming_kick,            self.method(:_in_kick))
+    @irc.on_msg     self.method(:_in_msg)
+    @irc.on_act     self.method(:_in_act)
+    @irc.on_invite  self.method(:_in_invited)
+    @irc.on_kick    self.method(:_in_kick)
 
     @irc.prepend_handler(:outgoing_join,            self.method(:_out_join))
   end
