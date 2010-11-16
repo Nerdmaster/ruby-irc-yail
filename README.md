@@ -90,7 +90,7 @@ Shortcut methods make the common operations take a bit less typing, and are hope
 lose anything by using them.  They are all used similarly to set_callback, before_filter, and after_filter, but with
 the event name as part of the method.  They must be given a proc object or a block.
 
-* on_xxx: Sets a callback for an incoming event, so on_join will be the same as called set_callback(:incoming_join)
+* on_xxx: Sets a callback for an incoming event, so on_join will be the same as calling set_callback(:incoming_join)
 * hearing_xxx: Creates a before-filter on incoming event xxx.  This is the same as calling before_filter(:incoming_xxx)
 * heard_xxx: Creates an after-filter on incoming event xxx.  This is the same as calling after_filter(:incoming_xxx)
 * saying_xxx: Creates a before-filter on outgoing event xxx.  This is the same as calling before_filter(:outgoing_xxx)
