@@ -22,6 +22,13 @@ High priority
 * Figure out best approach for handling :incoming_any - custom event object probably, filters
   only - no callback since you can't "handle" unknown data.  Callbacks are for doing a specific task
   once you have data.
+* Convert *all* existing code to use the new event data (outgoing api skipped until below item is done)
+* Figure out outgoing events:
+  * output_api.rb needs to continue taking the same args, but convert the data to an OutgoingEvent object
+    that has all the relevant data
+  * Separate callbacks from output method so callbacks can be properly registered
+  * Call dispatch on new event object
+  * In legacy_events.rb legacy_process_event(), need to call handle() on the outgoing data types
 
 * Make events more like a plugin kind of system.
   X Each event can have pre-callback and post-callback filters.
@@ -139,6 +146,7 @@ When ready to change the API in a major way
 * Kill old log @loud and @silent stuff
 * Remove filtering code from YAIL's initialize() - move to plugin user must explicitly include
 * Pull out nickname-in-use handler and make that only part of IRCBot, not YAIL
+* Kill IRCBot.rb, leaving only irc_bot.rb
 * Simply store nicknames in default namreply handler - that is, kill all report() calls
 * Remove report() calls in magic events
 
