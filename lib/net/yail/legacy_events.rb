@@ -81,7 +81,7 @@ module LegacyEvents
   def legacy_process_event(event)
     # Allow global handler to break the chain, filter the line, whatever.  For
     # this release, it's a hack.  2.0 will be better.
-    if (Array === @legacy_handlers[:incoming_any])
+    if (Net::YAIL::IncomingEvent === event && Array === @legacy_handlers[:incoming_any])
       for handler in @legacy_handlers[:incoming_any]
         result = handler.call(event.raw)
         return true if true == result

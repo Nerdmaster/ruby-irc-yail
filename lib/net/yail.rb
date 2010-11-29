@@ -441,18 +441,12 @@ class YAIL
     lines.each {|line| $stdout.puts "(#{Time.now.strftime('%H:%M.%S')}) #{line}"}
   end
 
+  # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses hacky
+  # :incoming_any event if event object is of IncomingEvent type.
   def dispatch(event)
-    # Allow global filtering before event goes anywhere
-    if (Array === @before_filters[:incoming_any])
-      for filter in @before_filters[:incoming_any]
-        filter.call(event)
-        return if event.handled?
-      end
-    end
-
     # Add all before-callback stuff to our chain, then the callback itself last
     chain = []
-    chain.push @before_filters[:incoming_any]
+    chain.push @before_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
     chain.push @before_filters[event.type]
     chain.push @callback[event.type]
     chain.flatten!
@@ -470,7 +464,7 @@ class YAIL
     # Add all after-callback stuff to a new chain
     chain = []
     chain.push @after_filters[event.type]
-    chain.push @after_filters[:incoming_any]
+    chain.push @after_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
     chain.flatten!
     chain.compact!
 
