@@ -2,7 +2,7 @@ High priority
 =============
 
 * Allow user to specify IO object for connection so TCPSocket can be overridden.  Write unit tests
-  after doing so, using mocked socket object.
+  after doing so, using StringIO class (require "stringio"; io = StringIO.new("foo\nbar\n"); ...)
 * Get event handling/filtering methods into a module to include - slightly cleaner I think
   * i.e., Net::YAIL pulls in dispatch, before_filter, etc from another module so less miscellaneous
     crap in yail.rb, much like default_events.rb
@@ -13,18 +13,6 @@ High priority
   * Separate callbacks from output method so callbacks can be properly registered
   * Call dispatch on new event object
   * In legacy_events.rb legacy_process_event(), need to call handle() on the outgoing data types
-
-* Make events more like a plugin kind of system.
-  X Each event can have pre-callback and post-callback filters.
-    X These would include internal things like the handling of changing bot's nick.
-    X User could add his own.
-    X All after-filters always run - no breaking the chain!
-  X User normally registers a single callback - this is the definitive handler for a given IRC event.
-    X New method, set_callback or similar.  Basically overwrites callback for a given event.
-    X Deprecate prepend_handler code - give warning to $stderr, even.
-  X Callbacks should be used for things like a bot that does a certain action when his name is
-    spoken in a channel, for instance - an actual handling of the event.
-  X Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
   * Outgoing events need to be separate in some way because while they can be filtered, the default
     handling has to remain for them to work!
     * Make a better OutgoingEvent system - they aren't events, they're commands, and they can't be
@@ -34,26 +22,16 @@ High priority
         with raw data, but our internal callback spits out raw data to socket.  User can
         filter or even cancel the event from happening, but shouldn't set up a callback easily - it
         will hopefully be hard enough that the average person doesn't bother.
-  * Redo logger and dumbbot when this is ready
-  * Get all docs up to date:
-    * README.md
-    * yail.rb comments
-      * Most class-level comments have to be thrown out and rewritten from scratch :(
-    * YAIL-RDOC
-      * Maybe get rid of this and just have "main" page in rdoc be yail.rb?
-  * Build example plugin or two so this functionality isn't meaningless!  Speech filtering, ignore
-    (by hostmask regex or nick or whatever), command-callback system (register commands, user enters
-    "!command" and command-callback hits) come to mind.
-  * Consider allowing a default of :incoming_xxx on callback, since those are only allowed for
-    incoming events, and even filters so only outgoing filters require explicit :outgoing_xxx
-    * Re-consider functional semantics like "before_say_xxx ..." for :outgoing_xxx filter, etc. -
-      less work for user than "add_before_filter(:outgoing_xxx ..."
-      * Filters: sending_xxx, sent_xxx, hearing_xxx, heard_xxx - not perfect, but somewhat intuitive
-      * Callback is easy: on_xxx - THERE CAN BE ONLY ONE, and only for incoming events!
-      * Handling custom events would be manual:
-        * before_filter(:some_event_type, code)
-        * set_callback(:some_event_type) {|event| do_stuff(event);}
-        * after_filter(:some_event_type, code)
+* Redo logger and dumbbot with new event API
+* Get all docs up to date:
+  * README.md
+  * yail.rb comments
+    * Most class-level comments have to be thrown out and rewritten from scratch :(
+  * YAIL-RDOC
+    * Maybe get rid of this and just have "main" page in rdoc be yail.rb?
+* Build example plugin or two so this functionality isn't meaningless!  Speech filtering, ignore
+  (by hostmask regex or nick or whatever), command-callback system (register commands, user enters
+  "!command" and command-callback hits) come to mind.
 
 Version 1.5
 ===========
