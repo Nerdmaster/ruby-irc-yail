@@ -151,7 +151,11 @@ class YAIL
     eventmap = "#{File.dirname(__FILE__)}/yail/eventmap.yml"
     @event_number_lookup = File.open(eventmap) { |file| YAML::load(file) }.invert
 
-    prepare_tcp_socket
+    if @io
+      @socket = @io
+    else
+      prepare_tcp_socket
+    end
 
     set_defaults
   end
