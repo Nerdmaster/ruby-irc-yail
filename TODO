@@ -4,24 +4,8 @@ High priority
 * Allow user to specify IO object for connection so TCPSocket can be overridden.  Write unit tests
   after doing so, using mocked socket object.
 * Get event handling/filtering methods into a module to include - slightly cleaner I think
-* New dispatch routine to deal with new event system:
-  * Create dispatch() method.  For 1.5, this calls handle() after callbacks but before after-
-    callback filters.  Later, handle() just disappears, along with prepend_handler, etc.
-  * Dispatch is called on parent event.
-  * Code:
-        def dispatch(event)
-          if (event.child.nil? || propagation.include?(event.type))
-            call_before_filters(event)
-            callback(event)
-            legacy_handle(event)  # this will house the legacy logic currently living in process_input
-            call_after_filters(event)
-            return
-          end
-          dispatch(event.child);
-        end
-* Figure out best approach for handling :incoming_any - custom event object probably, filters
-  only - no callback since you can't "handle" unknown data.  Callbacks are for doing a specific task
-  once you have data.
+  * i.e., Net::YAIL pulls in dispatch, before_filter, etc from another module so less miscellaneous
+    crap in yail.rb, much like default_events.rb
 * Convert *all* existing code to use the new event data (outgoing api skipped until below item is done)
 * Figure out outgoing events:
   * output_api.rb needs to continue taking the same args, but convert the data to an OutgoingEvent object
@@ -38,9 +22,9 @@ High priority
   X User normally registers a single callback - this is the definitive handler for a given IRC event.
     X New method, set_callback or similar.  Basically overwrites callback for a given event.
     X Deprecate prepend_handler code - give warning to $stderr, even.
-  * Callbacks should be used for things like a bot that does a certain action when his name is
+  X Callbacks should be used for things like a bot that does a certain action when his name is
     spoken in a channel, for instance - an actual handling of the event.
-  * Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
+  X Filters should be used for back-end tasks, like logging, modifying text, storing stats, etc.
   * Outgoing events need to be separate in some way because while they can be filtered, the default
     handling has to remain for them to work!
     * Make a better OutgoingEvent system - they aren't events, they're commands, and they can't be
