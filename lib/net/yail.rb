@@ -277,6 +277,9 @@ class YAIL
   # * <tt>:username</tt>: Username reported to server
   # * <tt>:realname</tt>: Real name reported to server
   # * <tt>:nicknames</tt>: Array of nicknames to cycle through
+  # * <tt>:io</tt>: TCP replacement object to use, should already be connected and ready for sending
+  #   the "connect" data (:outgoing_begin_connection handler does this)
+  #   If this is passed, :address and :port are ignored.
   # * <tt>:silent</tt>: DEPRECATED - Sets Logger level to FATAL and silences most non-Logger
   #   messages.
   # * <tt>:loud</tt>: DEPRECATED - Sets Logger level to DEBUG. Spits out too many messages for your own good,
@@ -298,6 +301,7 @@ class YAIL
     @username           = options[:username]
     @realname           = options[:realname]
     @address            = options[:address]
+    @io                 = options[:io]
     @port               = options[:port] || 6667
     @log_silent         = options[:silent] || false
     @log_loud           = options[:loud] || false
@@ -331,13 +335,17 @@ class YAIL
     @dead_socket = false
 
     # Build our socket - if something goes wrong, it's immediately a dead socket.
-    begin
-      @socket = TCPSocket.new(@address, @port)
-      setup_ssl if @ssl
-    rescue StandardError => boom
-      @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
-      @dead_socket = true
-      raise
+    if @io
+      @socket = @io
+    else
+      begin
+        @socket = TCPSocket.new(@address, @port)
+        setup_ssl if @ssl
+      rescue StandardError => boom
+        @log.fatal "+++ERROR: Unable to open socket connection in Net::YAIL.initialize: #{boom.inspect}"
+        @dead_socket = true
+        raise
+      end
     end
 
     # Shared resources for threads to try and coordinate....  I know very
@@ -350,7 +358,6 @@ class YAIL
 
     # Buffered output is allowed to go out right away.
     @next_message_time = Time.now
-
     # Setup handlers
     @handlers = Hash.new
     setup_default_handlers
