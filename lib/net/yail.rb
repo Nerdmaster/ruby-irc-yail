@@ -483,8 +483,10 @@ class YAIL
   # forever for incoming data, and calling handlers due to this listening
   def io_loop
     loop do
-      # if no data is coming in, don't block the socket!
-      read_incoming_data if Kernel.select([@socket], nil, nil, 0)
+      # if no data is coming in, don't block the socket!  To allow for mocked IO objects, allow
+      # a non-IO to just be assumed ready
+      ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : true
+      read_incoming_data if ready
 
       # Check for dead socket
       @dead_socket = true if @socket.eof?
