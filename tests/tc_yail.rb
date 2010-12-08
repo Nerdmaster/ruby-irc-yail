@@ -22,14 +22,16 @@ class MessageParserEventTest < Test::Unit::TestCase
     @yail.start_listening
 
     # Give us a chance to catch all events
-    until ( 1 == @msg[:endofmotd] )
+    until ( @msg[:endofmotd] > 0 )
       sleep 0.1
     end
 
-    assert_equal "Bot", yail.me, "Auto-nick setting worked"
     assert_equal 1, @msg[:welcome]
+    assert_equal 1, @msg[:endofmotd]
+    assert_equal "Bot", @yail.me, "Auto-nick setting worked"
 
-    yail.quit("Bye bye")
-    sleep 0.1
+    # Clear message hash, throw a nick change out
+    @msg = Hash.new(0)
+    @yail.nick "Foo"
   end
 end
