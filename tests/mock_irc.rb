@@ -1,6 +1,7 @@
 # An IO-like class that does IRC-like magic for us
 class MockIRC
   SERVER = "fakeirc.org"
+  USERHOST = "fakey@nerdbucket.com"
 
   # Init - just call super and set up a couple vars
   def initialize(*args)
@@ -62,17 +63,15 @@ class MockIRC
       return
     end
 
+    # TODO: Handle other commands
     case cmd
       when /^QUIT/
         add_output ":#{SERVER} NOTICE #{@nick} :See ya, jerk"
         @closed = true
-        return
-      when /^NICK/
-        handle_nick(cmd)
-        return
-    end
 
-    # TODO: Handle other commands
+      when /^NICK/    then handle_nick(cmd)
+      when /^JOIN/    then handle_join(cmd)
+    end
   end
 
   # Handles a connection command (USER) or errors
@@ -103,29 +102,48 @@ class MockIRC
     @nick = nick
 
     unless @logged_in
-      add_output ":#{SERVER} NOTICE #{nick} :*** You are exempt from user limits. congrats.",
-                 ":#{SERVER} 001 #{nick} :Welcome to the Fakey-fake Internet Relay Chat Network #{nick}",
-                 ":#{SERVER} 002 #{nick} :Your host is #{SERVER}[0.0.0.0/6667], running version mock-irc-1.7.7",
-                 ":#{SERVER} 003 #{nick} :This server was created Nov 21 2009 at 21:20:48",
-                 ":#{SERVER} 004 #{nick} #{SERVER} mock-irc-1.7.7 foobar barbaz bazfoo",
-                 ":#{SERVER} 005 #{nick} CALLERID CASEMAPPING=rfc1459 DEAF=D KICKLEN=160 MODES=4 NICKLEN=15 PREFIX=(ohv)@%+ STATUSMSG=@%+ TOPICLEN=350 NETWORK=Fakeyfake MAXLIST=beI:25 MAXTARGETS=4 CHANTYPES=#& :are supported by this server",
-                 ":#{SERVER} 251 #{nick} :There are 0 users and 24 invisible on 1 servers",
-                 ":#{SERVER} 254 #{nick} 3 :channels formed",
-                 ":#{SERVER} 255 #{nick} :I have 24 clients and 0 servers",
-                 ":#{SERVER} 265 #{nick} :Current local users: 24  Max: 30",
-                 ":#{SERVER} 266 #{nick} :Current global users: 24  Max: 33",
-                 ":#{SERVER} 250 #{nick} :Highest connection count: 30 (30 clients) (4215 connections received)",
-                 ":#{SERVER} 375 #{nick} :- #{SERVER} Message of the Day - ",
-                 ":#{SERVER} 372 #{nick} :-           BOO!",
-                 ":#{SERVER} 372 #{nick} :-     Did I scare you?",
-                 ":#{SERVER} 372 #{nick} :-        BOO again!",
-                 ":#{SERVER} 376 #{nick} :End of /MOTD command."
+      add_output ":#{SERVER} NOTICE #{@nick} :*** You are exempt from user limits. congrats.",
+                 ":#{SERVER} 001 #{@nick} :Welcome to the Fakey-fake Internet Relay Chat Network #{@nick}",
+                 ":#{SERVER} 002 #{@nick} :Your host is #{SERVER}[0.0.0.0/6667], running version mock-irc-1.7.7",
+                 ":#{SERVER} 003 #{@nick} :This server was created Nov 21 2009 at 21:20:48",
+                 ":#{SERVER} 004 #{@nick} #{SERVER} mock-irc-1.7.7 foobar barbaz bazfoo",
+                 ":#{SERVER} 005 #{@nick} CALLERID CASEMAPPING=rfc1459 DEAF=D KICKLEN=160 MODES=4 NICKLEN=15 PREFIX=(ohv)@%+ STATUSMSG=@%+ TOPICLEN=350 NETWORK=Fakeyfake MAXLIST=beI:25 MAXTARGETS=4 CHANTYPES=#& :are supported by this server",
+                 ":#{SERVER} 251 #{@nick} :There are 0 users and 24 invisible on 1 servers",
+                 ":#{SERVER} 254 #{@nick} 3 :channels formed",
+                 ":#{SERVER} 255 #{@nick} :I have 24 clients and 0 servers",
+                 ":#{SERVER} 265 #{@nick} :Current local users: 24  Max: 30",
+                 ":#{SERVER} 266 #{@nick} :Current global users: 24  Max: 33",
+                 ":#{SERVER} 250 #{@nick} :Highest connection count: 30 (30 clients) (4215 connections received)",
+                 ":#{SERVER} 375 #{@nick} :- #{SERVER} Message of the Day - ",
+                 ":#{SERVER} 372 #{@nick} :-           BOO!",
+                 ":#{SERVER} 372 #{@nick} :-     Did I scare you?",
+                 ":#{SERVER} 372 #{@nick} :-        BOO again!",
+                 ":#{SERVER} 376 #{@nick} :End of /MOTD command."
       @logged_in = true
       return
     end
 
     # Hostmask is faked, but otherwise this is the message we send in response to a nick change
-    add_output ":#{oldnick}!fakedude@nerdbucket.com NICK :#{@nick}"
+    add_output ":#{oldnick}!#{USERHOST} NICK :#{@nick}"
+  end
+
+  def handle_join(cmd)
+    unless cmd =~ /^JOIN (\S*)( (\S*))?$/
+      return
+    end
+
+    channel = $1
+    pass = $2
+    if "#banned" == channel
+      add_output ":#{SERVER} 474 T-meister #{channel}:Cannot join channel (+b)"
+      return
+    end
+
+    add_output ":#{@nick}!#{USERHOST} JOIN :#{channel}",
+               ":#{SERVER} 332 #{@nick} #{channel} :This is a topic, y'all!",
+               ":#{SERVER} 333 #{@nick} #{channel} user!user@user.com 1291781166",
+               ":#{SERVER} 353 #{@nick} = #{channel} :#{@nick} @Nerdmaster another_bot",
+               ":#{SERVER} 366 #{@nick} #{channel} :End of /NAMES list."
   end
 
   # Sets up our internal string to add the given string arguments for a gets call to pull
