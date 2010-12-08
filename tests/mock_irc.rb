@@ -1,8 +1,5 @@
-require 'stringio'
-
-# A StringIO subclass that does IRC-like magic for us - we have to override puts to make
-# this object more interactive.  This is NOT an IRC server - this is just for testing.
-class MockIRC < StringIO
+# An IO-like class that does IRC-like magic for us
+class MockIRC
   SERVER = "fakeirc.org"
 
   # Init - just call super and set up a couple vars
@@ -12,20 +9,45 @@ class MockIRC < StringIO
     @logged_in = false
     @closed = false
     @server = ''
+    @output = []
+    @mutex = Mutex.new
   end
-
-  # Hack eof so we completely control this "socket"
-  def eof
-    return self.closed?
-  end
-  def eof?; eof; end
 
   # All output sent to the IO uses puts in YAIL.  I hope.
   def puts(*args)
-    for string in args
-      handle_command(string.strip)
+    @mutex.synchronize do
+      for string in args
+        handle_command(string.strip)
+      end
     end
     return nil
+  end
+
+  # Lets us know if we are an open "socket" or not - if the socket is closed *and* we're out of
+  # output, we are done
+  def eof
+    @mutex.synchronize do
+      return @output.empty? && @closed
+    end
+  end
+
+  alias_method :eof?, :eof
+
+  # Pulls the first element off of @output
+  def gets
+    output = nil
+    @mutex.synchronize do
+      output = @output.shift
+    end
+
+    puts "WTF NO DATA!" if !output
+
+    return output
+  end
+
+  # Hack to let YAIL know if we have data to read
+  def ready?
+    return @output.empty? ? nil : true
   end
 
   # All the magic goes here
@@ -42,7 +64,8 @@ class MockIRC < StringIO
 
     case cmd
       when /^QUIT/
-        add_output ":#{SERVER} NOTICE #{@user} :See ya, jerk"
+        add_output ":#{SERVER} NOTICE #{@nick} :See ya, jerk"
+        @closed = true
         return
     end
 
@@ -102,6 +125,6 @@ class MockIRC < StringIO
 
   # Sets up our internal string to add the given string arguments for a gets call to pull
   def add_output(*args)
-    args.each {|arg| self.string += arg + "\n"}
+    args.each {|arg| @output.push(arg + "\n")}
   end
 end
