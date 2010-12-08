@@ -67,6 +67,9 @@ class MockIRC
         add_output ":#{SERVER} NOTICE #{@nick} :See ya, jerk"
         @closed = true
         return
+      when /^NICK/
+        handle_nick(cmd)
+        return
     end
 
     # TODO: Handle other commands
@@ -96,6 +99,7 @@ class MockIRC
       return
     end
 
+    oldnick = @nick
     @nick = nick
 
     unless @logged_in
@@ -120,7 +124,8 @@ class MockIRC
       return
     end
 
-    # TODO: Deal with normal nick change here
+    # Hostmask is faked, but otherwise this is the message we send in response to a nick change
+    add_output ":#{oldnick}!fakedude@nerdbucket.com NICK :#{@nick}"
   end
 
   # Sets up our internal string to add the given string arguments for a gets call to pull
