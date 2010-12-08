@@ -484,8 +484,8 @@ class YAIL
   def io_loop
     loop do
       # if no data is coming in, don't block the socket!  To allow for mocked IO objects, allow
-      # a non-IO to just be assumed ready
-      ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : true
+      # a non-IO to let us know if it's ready
+      ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : @socket.ready?
       read_incoming_data if ready
 
       # Check for dead socket
