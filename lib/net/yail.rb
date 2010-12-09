@@ -136,13 +136,13 @@ class YAIL
       @log = Logger.new(options[:log_io] || STDERR)
       @log.level = Logger::WARN
  
+      if (options[:silent] || options[:loud])
+        @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
+      end
+
       # Convert old-school options into logger stuff
       @log.level = Logger::DEBUG if @log_loud
       @log.level = Logger::FATAL if @log_silent
-    end
-
-    if (options[:silent] || options[:loud])
-      @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1 - instead access <yail object>.log.level'
     end
 
     # Read in map of event numbers and names.  Yes, I stole this event map
@@ -320,8 +320,10 @@ class YAIL
   # forever for incoming data, and calling filters/callback due to this listening
   def io_loop
     loop do
-      # if no data is coming in, don't block the socket!
-      read_incoming_data if Kernel.select([@socket], nil, nil, 0)
+      # if no data is coming in, don't block the socket!  To allow for mocked IO objects, allow
+      # a non-IO to let us know if it's ready
+      ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : @socket.ready?
+      read_incoming_data if ready
 
       # Check for dead socket
       @dead_socket = true if @socket.eof?
