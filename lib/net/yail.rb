@@ -347,7 +347,7 @@ class YAIL
         # Now actually handle the data we copied, secure in the knowledge
         # that our reader thread is no longer going to wait on us.
         until lines.empty?
-          event = Net::YAIL::IncomingEvent.parse(line)
+          event = Net::YAIL::IncomingEvent.parse(lines.shift)
           dispatch(event)
         end
 
@@ -415,6 +415,7 @@ class YAIL
   def before_filter(event_type, method = nil, &block)
     filter = block_given? ? block : method
     if filter
+      event_type = numeric_event_type_convert(event_type)
       @before_filters[event_type] ||= Array.new
       @before_filters[event_type].unshift(filter)
     end
@@ -426,6 +427,7 @@ class YAIL
   # the definitive callback - logging, filtering messages, stats gathering, ignoring messages from a set user, etc.
   def set_callback(event_type, method = nil, &block)
     callback = block_given? ? block : method
+    event_type = numeric_event_type_convert(event_type)
     @callback[event_type] = callback
     @callback.delete(event_type) unless callback
   end
@@ -436,8 +438,9 @@ class YAIL
   def after_filter(event_type, method = nil, &block)
     filter = block_given? ? block : method
     if filter
-      @before_filters[event_type] ||= Array.new
-      @before_filters[event_type].unshift(filter)
+      event_type = numeric_event_type_convert(event_type)
+      @after_filters[event_type] ||= Array.new
+      @after_filters[event_type].unshift(filter)
     end
   end
 
@@ -445,6 +448,16 @@ class YAIL
   # IRCSocket report capturing, but this is way more straightforward to me.
   def report(*lines)
     lines.each {|line| $stdout.puts "(#{Time.now.strftime('%H:%M.%S')}) #{line}"}
+  end
+
+  # Converts events that are numerics into the internal "incoming_numeric_xxx" format
+  def numeric_event_type_convert(type)
+    if (type.to_s =~ /^incoming_(.*)$/)
+      number = @event_number_lookup[$1].to_i
+      type = :"incoming_numeric_#{number}" if number > 0
+    end
+
+    return type
   end
 
   # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses hacky
@@ -483,7 +496,7 @@ class YAIL
     method = nil
     event_type = nil
 
-    case name
+    case name.to_s
       when /^on_(.*)$/
         method = :set_callback
         event_type = :"incoming_#{$1}"
@@ -516,7 +529,7 @@ class YAIL
       return
     end
 
-    self.call(method, filter_or_callback_method)
+    self.send(method, event_type, filter_or_callback_method)
   end
 end
 

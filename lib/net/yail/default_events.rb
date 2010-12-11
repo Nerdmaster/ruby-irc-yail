@@ -15,7 +15,8 @@ module Defaults
   end
 
   def r_notice(event)
-    report "{%s} -%s- %s" % [event.target || event.channel, event.nick, event.text]
+    nick = event.server? ? '' : event.nick
+    report "{%s} -%s- %s" % [event.target || event.channel, nick, event.text]
   end
 
   def r_ctcp(event)

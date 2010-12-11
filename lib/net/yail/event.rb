@@ -148,7 +148,7 @@ class YAIL
           event = new(data)
 
           # Create child event for the specific numeric
-          data[:type] = msg.command.to_sym
+          data[:type] = :"numeric_#{msg.command.to_i}"
           data[:parent] = event
           event = new(data)
 

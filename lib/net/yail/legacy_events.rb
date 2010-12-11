@@ -74,11 +74,15 @@ module LegacyEvents
     else
       # No handler = report and don't worry about it
       @log.info "Unknown raw #{number.to_s} from #{fullactor}: #{text}"
+      return false
     end
   end
 
   # Gets some input, sends stuff off to a handler.  Yay.
   def legacy_process_event(event)
+    # HACK TODO TODO: need to deal with other event handling here - particularly outgoing events
+    return false unless Net::YAIL::IncomingEvent === event
+
     # Allow global handler to break the chain, filter the line, whatever.  For
     # this release, it's a hack.  2.0 will be better.
     if (Net::YAIL::IncomingEvent === event && Array === @legacy_handlers[:incoming_any])
@@ -93,7 +97,7 @@ module LegacyEvents
 
     # Except for this - we still have to handle numerics the crappy way until we build the proper
     # dispatching of events
-    event = event.parent if event.parent && :incoming_numeric == event.parent.type
+    event = event.parent if Net::YAIL::IncomingEvent === event && event.parent && :incoming_numeric == event.parent.type
 
     case event.type
       # Ping is important to handle quickly, so it comes first.
