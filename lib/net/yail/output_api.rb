@@ -35,26 +35,13 @@ module IRCOutputAPI
     report "bot: #{line.inspect}" if report
   end
 
-  # Calls :outgoing_privmsg handler, then sends a message (text) out to the
-  # given channel/user (target), and reports itself with the given string.
-  # This method shouldn't be called directly most of the time - just use msg,
-  # act, ctcp, etc.
-  #
-  # This is sort of the central message output - everything that's based on
-  # PRIVMSG (messages, actions, other ctcp) uses this.  Because these messages
-  # aren't insanely important, we actually buffer them instead of sending
-  # straight out to the channel.  The output thread has to deal with
-  # sending these out.
-  def privmsg(target, text, report_string)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
-
-    handle(:outgoing_privmsg, target, text)
-
+  # Buffers the given event to be sent out when we are able to send something out to the given
+  # target.  If buffering isn't turned on, the event will be processed in the next loop of outgoing
+  # messages.
+  def buffer_output(event)
     @privmsg_buffer_mutex.synchronize do
-      @privmsg_buffer[target] ||= Array.new
-      @privmsg_buffer[target].push([text, report_string])
+      @privmsg_buffer[event.target] ||= Array.new
+      @privmsg_buffer[event.target].push event
     end
   end
 

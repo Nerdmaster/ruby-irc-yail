@@ -360,9 +360,9 @@ class YAIL
   end
 
   # Grabs one message for each target in the private message buffer, removing
-  # messages from @privmsg_buffer.  Returns a hash array of target -> text
+  # messages from @privmsg_buffer.  Returns an array of events to process
   def pop_privmsgs
-    privmsgs = {}
+    privmsgs = []
 
     # Only synchronize long enough to pop the appropriate messages.  By
     # the way, this is UGLY!  I should really move some of this stuff....
@@ -375,23 +375,18 @@ class YAIL
           next
         end
 
-        privmsgs[target] = @privmsg_buffer[target].shift
+        privmsgs.push @privmsg_buffer[target].shift
       end
     end
 
     return privmsgs
   end
 
-  # Checks for new private messages, and outputs all that are gathered from
-  # pop_privmsgs, if any
+  # Checks for new private messages, and dispatches all that are gathered from pop_privmsgs, if any
   def check_privmsg_output
     privmsgs = pop_privmsgs
     @next_message_time = Time.now + @throttle_seconds unless privmsgs.empty?
-
-    for (target, out_array) in privmsgs
-      report(out_array[1]) unless out_array[1].to_s.empty?
-      raw("PRIVMSG #{target} :#{out_array.first}", false)
-    end
+    privmsgs.each {|event| dispatch event}
   end
 
   # Our final thread loop - grabs the first privmsg for each target and
