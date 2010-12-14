@@ -51,7 +51,7 @@ class YailSessionTest < Test::Unit::TestCase
     # Gotta store extra info on notices to test event parsing
     @notices = []
     @yail.prepend_handler(:incoming_notice) do |f, actor, target, text|
-      @notices.push({:server => f, :nick => actor, :target => target, :text => text})
+      @notices.push({:from => f, :nick => actor, :target => target, :text => text})
     end
 
     @yail.prepend_handler(:incoming_ping) { |text| @ping_message = text }
@@ -102,7 +102,7 @@ class YailSessionTest < Test::Unit::TestCase
     assert_equal 2, @msg[:notice]
 
     # Intense notice test - make sure all events were properly translated
-    assert_equal ['fakeirc.org', 'fakeirc.org'], @notices.collect {|n| n[:server]}
+    assert_equal ['fakeirc.org', 'fakeirc.org'], @notices.collect {|n| n[:from]}
     assert_equal ['', ''], @notices.collect {|n| n[:nick]}
     assert_equal ['AUTH', 'Bot'], @notices.collect {|n| n[:target]}
     assert_match %r|looking up your host|i, @notices.first[:text]

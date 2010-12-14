@@ -34,7 +34,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'jeremy', event.msg.user
     assert_equal 'nerdbucket.com', event.msg.host
     assert_equal 'Nerdmaster!jeremy@nerdbucket.com', event.fullname
-    assert_equal 'Nerdmaster!jeremy@nerdbucket.com', event.from
+    assert_equal 'Nerdmaster', event.from
     assert !event.server?
     assert_equal 'PRIVMSG', event.msg.command
     assert_equal :incoming_msg, event.type
@@ -187,7 +187,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Nerdmaster', event.target
     assert_equal 'Nerdminion', event.nick
     assert_equal 'Nerdminion!minion@nerdbucket.com', event.fullname
-    assert_equal 'Nerdminion!minion@nerdbucket.com', event.from
+    assert_equal 'Nerdminion', event.from
     assert_equal 'USERINFO :Minion of the nerd', event.text
 
     # Channel-wide notice

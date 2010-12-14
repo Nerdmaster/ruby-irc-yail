@@ -20,16 +20,13 @@ class YAIL
         key = key.to_s
         self.instance_eval("def #{key}; return @data[:#{key}]; end")
       end
+
+      raise "BaseEvent not usable - please subclass" if BaseEvent == self.class
     end
 
     # Helps us debug
     def to_s
       return super().gsub(self.class.name, "%s [%s]" % [self.class.name, @type.to_s])
-    end
-
-    # We don't allow BaseEvent objects, and since type is the key, we filter here
-    def type
-      raise "BaseEvent not usable - please subclass"
     end
 
     # Unintuitive name to avoid accidental use - we don't want it to be the norm to stop the event
@@ -61,6 +58,7 @@ class YAIL
   # the IRC server.  Other possible pieces of data are as follows:
   # * fullname: Rarely needed, full text of origin of an action
   # * nick: Nickname of originator of an event
+  # * from: Nickname *or* server name, should be on every event
   # * channel: Where applicable, the name of the channel in which the event
   #   happened.
   # * text: Actual message/emote/notice/etc
@@ -113,8 +111,8 @@ class YAIL
       if msg.servername
         data[:from] = data[:servername] = msg.servername
       elsif msg.prefix && msg.nick
-        data[:from] = data[:fullname] = msg.prefix
-        data[:nick] = msg.nick
+        data[:fullname] = msg.prefix
+        data[:from] = data[:nick] = msg.nick
         data[:server?] = false
       end
 
