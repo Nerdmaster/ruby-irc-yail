@@ -14,6 +14,9 @@ class YAIL
       @handled = false
       @type = @data.delete(:type)
 
+      # All events have the capacity for a parent
+      @data[:parent] ||= nil
+
       # Give useful accessors in a hacky but fun way!  I can't decide if I prefer the pain of
       # using method_missing or the pain of not knowing how to do this without a string eval....
       for key in @data.keys
@@ -101,7 +104,7 @@ class YAIL
       # Parse with MessageParser to get raw IRC info
       raw = line.dup
       msg = Net::YAIL::MessageParser.new(line)
-      data = { :raw => raw, :msg => msg, :parent => nil }
+      data = { :raw => raw, :msg => msg }
 
       # Not all messages from the server identify themselves as such, so we just assume it's from
       # the server unless we explicitly see a nick

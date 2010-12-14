@@ -98,7 +98,7 @@ module LegacyEvents
 
     # Except for this - we still have to handle numerics the crappy way until we build the proper
     # dispatching of events
-    event = event.parent if Net::YAIL::IncomingEvent === event && event.parent && :incoming_numeric == event.parent.type
+    event = event.parent if event.parent && :incoming_numeric == event.parent.type
 
     case event.type
       # Ping is important to handle quickly, so it comes first.
