@@ -1,8 +1,6 @@
 High priority
 =============
 
-* Allow user to specify IO object for connection so TCPSocket can be overridden.  Write unit tests
-  after doing so, using StringIO class (require "stringio"; io = StringIO.new("foo\nbar\n"); ...)
 * Get event handling/filtering methods into a module to include - slightly cleaner I think
   * i.e., Net::YAIL pulls in dispatch, before_filter, etc from another module so less miscellaneous
     crap in yail.rb, much like default_events.rb
@@ -13,16 +11,10 @@ High priority
   * Separate callbacks from output method so callbacks can be properly registered
   * Call dispatch on new event object
   * In legacy_events.rb legacy_process_event(), need to call handle() on the outgoing data types
-  * Outgoing events need to be separate in some way because while they can be filtered, the default
-    handling has to remain for them to work!
-    * Make a better OutgoingEvent system - they aren't events, they're commands, and they can't be
-      "handled".  We can have filters before they're sent, but technically the callback is internal
-      and should not be bypassed.
-      * Create a new object for all commands in the output api - output function creates object
-        with raw data, but our internal callback spits out raw data to socket.  User can
-        filter or even cancel the event from happening, but shouldn't set up a callback easily - it
-        will hopefully be hard enough that the average person doesn't bother.
 * Redo logger and dumbbot with new event API
+* Add outgoing event report filters to replace previous hacking of report strings
+* Add after filters for outgoing events on actual send - for message types, this would be only when
+  they actually get sent in the outgoing buffer thing
 * Get all docs up to date:
   * README.md
   * yail.rb comments

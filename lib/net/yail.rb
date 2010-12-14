@@ -172,7 +172,8 @@ class YAIL
     # Exit a bit more gracefully than just crashing out - allow any :outgoing_quit filters to run,
     # and even give the server a second to clean up before we fry the connection
     #
-    # TODO: perhaps this should be in a callback so user can override TERM/INT handling
+    # TODO: This REALLY doesn't belong here!  This is saying everybody who uses the lib wants
+    #       CTRL+C to end the app at the YAIL level.  Not necessarily true outside bot-land.
     quithandler = lambda { quit('Terminated by user'); sleep 1; stop_listening; exit }
     trap("INT", quithandler)
     trap("TERM", quithandler)
