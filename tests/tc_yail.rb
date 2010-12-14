@@ -62,6 +62,58 @@ class YailSessionTest < Test::Unit::TestCase
     @yail.prepend_handler(:incoming_act) {|f, actor, channel, text| @act = {:channel => channel, :nick => actor, :text => text} }
   end
 
+  # "New" handlers are set up (the 1.5+ way of doing things) here to perform tests in common with
+  # legacy.  Note that because handlers are different, we have to use filtering for things like the
+  # welcome message, otherwise we don't let YAIL do its default stuff.
+  def setup_new_handlers
+    ###
+    # Simple counters for basic testing of successful handler registration
+    ###
+
+    @msg = Hash.new(0)
+    @yail.heard_welcome           { @msg[:welcome] += 1 }
+    @yail.heard_endofmotd         { @msg[:endofmotd] += 1 }
+    @yail.heard_notice            { @msg[:notice] += 1 }
+    @yail.heard_nick              { @msg[:nick] += 1 }
+    @yail.heard_bannedfromchan    { @msg[:bannedfromchan] += 1 }
+    @yail.heard_join              { @msg[:join] += 1 }
+    @yail.heard_mode              { @msg[:mode] += 1 }
+    @yail.heard_msg               { @msg[:msg] += 1 }
+    @yail.heard_act               { @msg[:act] += 1 }
+    @yail.heard_ctcp              { @msg[:ctcp] += 1 }
+    @yail.heard_ping              { @msg[:ping] += 1 }
+    @yail.heard_quit              { @msg[:quit] += 1 }
+    @yail.said_mode               { @msg[:o_mode] += 1 }
+    @yail.said_join               { @msg[:o_join] += 1 }
+
+    ###
+    # More complex handlers to test parsing of messages
+    ###
+
+    # Channels list helps us test joins
+    @channels = []
+    @yail.on_join do |event|
+      @channels.push(event.channel) if @yail.me == event.nick
+    end
+
+    # Gotta store extra info on notices to test event parsing
+    @notices = []
+    @yail.on_notice do |event|
+      # Notices are tricky - we have to check server? and pm? to mimic legacy handler info
+      notice = {:from => event.from, :text => event.text}
+      notice[:nick] = event.server? ? "" : event.nick
+      notice[:target] = event.pm? ? event.target : event.channel
+      @notices.push notice
+    end
+
+    @yail.heard_ping  { |event| @ping_message = event.text }
+    @yail.on_quit     { |event| @quit = {:full => event.fullname, :nick => event.nick, :text => event.text} }
+    @yail.saying_join { |event| @out_join = {:channel => event.channel, :password => event.pass} }
+    @yail.on_msg      { |event| @privmsg = {:channel => event.channel, :nick => event.nick, :event.text => text} }
+    @yail.on_ctcp     { |event| @ctcp = {:channel => event.channel, :nick => event.nick, :event.text => text} }
+    @yail.on_act      { |event| @act = {:channel => event.channel, :nick => event.nick, :event.text => text} }
+  end
+
   # Waits until the mock IRC reports it has no more output - i.e., we've read everything available
   def wait_for_irc
     while @mockirc.ready?
@@ -79,6 +131,12 @@ class YailSessionTest < Test::Unit::TestCase
     # Set up legacy handlers
     setup_legacy_handling
 
+    common_tests
+  end
+
+  # Exact same tests as above - just verifying functionality is the same as it was in legacy
+  def test_new
+    setup_new_handlers
     common_tests
   end
 
