@@ -78,7 +78,7 @@ class MessageParserEventTest < Test::Unit::TestCase
   def test_numeric
     event = Net::YAIL::IncomingEvent.parse(':nerdbucket.com 266 Nerdmaster :Current global users: 22  Max: 33')
     assert_equal 'Current global users: 22  Max: 33', event.text
-    assert_equal :incoming_266, event.type
+    assert_equal :incoming_numeric_266, event.type
     assert_equal 'nerdbucket.com', event.servername
     assert_equal 'nerdbucket.com', event.from
     assert_equal 'Nerdmaster', event.target
@@ -93,7 +93,7 @@ class MessageParserEventTest < Test::Unit::TestCase
 
     # Numeric with multiple args
     event = Net::YAIL::IncomingEvent.parse(':someserver.co.uk.fn.bb 366 Towelie #bottest :End of /NAMES list.')
-    assert_equal :incoming_366, event.type
+    assert_equal :incoming_numeric_366, event.type
     assert_equal '#bottest End of /NAMES list.', event.text
     assert_equal ['#bottest', 'End of /NAMES list.'], event.parameters
 
@@ -106,7 +106,7 @@ class MessageParserEventTest < Test::Unit::TestCase
         "\0031,8TuTTi AnCoRa In PRoVa..\0034M\00307w\00308a\00303H\00311u\0031 \0031,9PrEpArAtE Le RiChIeStE PeR Il RiCoVeRo a ViTa\0030,13PoStI " +
         "LiBeRi!!\0031,4!PaZZi Da STaRe InSiEmE. :\336")
     assert_equal 'irc.somehost.xx', event.from
-    assert_equal :incoming_322, event.type
+    assert_equal :incoming_numeric_322, event.type
     assert_equal :incoming_numeric, event.parent.type
     assert_equal 'user', event.target
     assert_equal ['#CrAzY_MaNiCoMiCuM', '12'], event.parameters[0..1]
