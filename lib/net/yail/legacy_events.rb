@@ -43,6 +43,7 @@ module LegacyEvents
   # method, but if you get "clever," you're on your own.
   def handle(event, *arguments)
     # Don't bother with anything if there are no handlers registered.
+    @legacy_handlers ||= Hash.new
     return false unless Array === @legacy_handlers[event]
 
     @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@legacy_handlers[event].inspect}:"
