@@ -1,132 +1,9 @@
 module Net
 module IRCEvents
 
-# This module contains all the default events handling - mainly for
-# reporting things or simple logic.  In 2.0, most of these will be removed.
+# This module contains all the default events handling that hasn't yet been cleaned up for 2.0
 module Defaults
   private
-
-  def r_msg(event)
-    report "{%s} <%s> %s" % [event.target || event.channel, event.nick, event.text]
-  end
-
-  def r_act(event)
-    report "{%s} * %s %s" % [event.target || event.channel, event.nick, event.text]
-  end
-
-  def r_notice(event)
-    nick = event.server? ? '' : event.nick
-    report "{%s} -%s- %s" % [event.target || event.channel, nick, event.text]
-  end
-
-  def r_ctcp(event)
-    report "{%s} [%s %s]" % [event.target || event.channel, event.nick, event.text]
-  end
-
-  def r_ctcpreply(event)
-    report "{%s} [Reply: %s %s]" % [event.target || event.channel, event.nick, event.text]
-  end
-
-  def r_mode(event)
-    report "{%s} %s sets mode %s %s" % [event.channel, event.nick, event.text, event.targets.join(' ')]
-  end
-
-  def r_join(event)
-    report "{#{event.channel}} #{event.nick} joins"
-  end
-
-  def r_part(event)
-    report "{#{event.channel}} #{event.nick} parts (#{event.text})"
-  end
-
-  def r_kick(event)
-    report "{#{event.channel}} #{event.nick} kicked #{event.target} (#{event.text})"
-  end
-
-  def r_quit(event)
-    report "#{event.nick} quit (#{event.text})"
-  end
-
-  # Incoming invitation
-  def r_invite(event)
-    report "[#{event.nick}] INVITE to #{event.target}"
-  end
-
-  # Reports nick change unless nickname is us - we check nickname here since
-  # the magic method changes @me to the new nickname.
-  def r_nick(event)
-    report "#{event.nick} changed nick to #{event.text}" unless nickname == @me
-  end
-
-  def r_bannedfromchan(event)
-    event.text =~ /^(\S*) :Cannot join channel/
-    report "Banned from channel #{$1}"
-  end
-
-  def r_badchannelkey(event)
-    event.text =~ /^(\S*) :Cannot join channel/
-    report "Bad channel key (password) for #{$1}"
-  end
-
-  def r_welcome(*args)
-    report "*** Logged in as #{@me}. ***"
-  end
-
-  # Channel URL
-  def r_channelurl(event)
-    event.text =~ /^(\S+) :?(.+)$/
-    report "{#{$1}} URL is #{$2}"
-  end
-
-  # Channel topic
-  def r_topic(event)
-    event.text =~ /^(\S+) :?(.+)$/
-    report "{#{$1}} Topic is: #{$2}"
-  end
-
-  # Channel topic setter
-  def r_topicinfo(event)
-    event.text =~ /^(\S+) (\S+) (\d+)$/
-    report "{#{$1}} Topic set by #{$2} on #{Time.at($3.to_i).asctime}"
-  end
-
-  # End of names
-  def r_endofnames(event)
-    event.text =~ /^(\S+)/
-    report "{#{$1}} Nickname list complete"
-  end
-
-  # MOTD line
-  def r_motd(event)
-    event.text =~ /^:?(.+)$/
-    report "*MOTD* #{$1}"
-  end
-
-  # Beginning of MOTD
-  def r_motdstart(event)
-    event.text =~ /^:?(.+)$/
-    report "*MOTD* #{$1}"
-  end
-
-  # End of MOTD
-  def r_endofmotd(event)
-    report "*MOTD* End of MOTD"
-  end
-
-  # Sent a privmsg (non-ctcp)
-  def r_out_msg(event)
-    report "{#{target}} <#{@me}> #{text}"
-  end
-
-  # Sent a ctcp
-  def r_out_ctcp(event)
-    report "{#{target}} [#{@me} #{text}]"
-  end
-
-  # Sent ctcp action
-  def r_out_act(event)
-    report "{#{target}} <#{@me}> #{text}"
-  end
 
   # Nickname change failed: already in use.  This needs a rewrite to at
   # least hit a "failed too many times" handler of some kind - for a bot,
@@ -167,15 +44,6 @@ module Defaults
     @nicklist = $3.split(' ')
     @nicklist.collect!{|name| name.sub(/^\W*/, '')}
     report "First nick: #{@nicklist[0]}"
-  end
-
-  # We dun connected to a server!  Just sends password (if one is set) and
-  # user/nick.  This isn't quite "essential" to a working IRC app, but this data
-  # *must* be sent at some point, so be careful before skipping this handler.
-  def out_begin_connection(event)
-    pass(@password) if @password
-    user(event.username, '0.0.0.0', event.address, event.realname)
-    nick(@nicknames[0])
   end
 
 end

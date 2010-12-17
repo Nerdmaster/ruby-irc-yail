@@ -223,17 +223,6 @@ class YAIL
 
   # Sets up all default filters and callbacks
   def set_defaults
-    # Set up reporting filters - this needs to be dropped, but for now centralizing it is best to avoid
-    # breaking the API (2.x WILL fix this, I swear!  ...unless it doesn't, of course)
-    incoming_reporting = [
-      :msg, :act, :notice, :ctcp, :ctcpreply, :mode, :join, :part, :kick,
-      :quit, :nick, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
-      :topicinfo, :endofnames, :motd, :motdstart, :endofmotd, :invite
-    ]
-    for event in incoming_reporting
-      after_filter(:"incoming_#{event}", self.method(:"r_#{event}") )
-    end
-
     # Set up callbacks for slightly more important things than reporting - note that these should
     # eventually be changed as they don't belong in the core of YAIL.  Note that since these are
     # callbacks, the user can very easily overwrite them, at least.

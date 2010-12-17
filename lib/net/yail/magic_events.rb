@@ -6,6 +6,15 @@ module IRCEvents
 module Magic
   private
 
+  # We dun connected to a server!  Just sends password (if one is set) and
+  # user/nick.  This isn't quite "essential" to a working IRC app, but this data
+  # *must* be sent at some point, so be careful before clobbering this handler.
+  def out_begin_connection(event)
+    pass(@password) if @password
+    user(event.username, '0.0.0.0', event.address, event.realname)
+    nick(@nicknames[0])
+  end
+
   # We were welcomed, so we need to set up initial nickname and set that we
   # registered so nick change failure doesn't cause DEATH!
   def magic_welcome(event)
