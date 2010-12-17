@@ -528,8 +528,7 @@ class YAIL
     # parent's method_missing.  Just to be safe, we also return, in case YAIL one day subclasses
     # from something that handles some method_missing stuff.
     unless (method && event_type) || args.length.zero?
-      super
-      return
+      return super
     end
 
     self.send(method, event_type, filter_or_callback_method)

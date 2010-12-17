@@ -26,8 +26,6 @@ module Magic
 
   # If bot changes his name, @me must change - this must be a filter, not the callback!
   def magic_nick(event)
-    $stderr.puts "me: #{@me.inspect}"
-    $stderr.puts "Event info: #{event.inspect}"
     @me = event.text.dup if event.nick.downcase == @me.downcase
   end
 
