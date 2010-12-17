@@ -5,6 +5,9 @@ High priority
   * i.e., Net::YAIL pulls in dispatch, before_filter, etc from another module so less miscellaneous
     crap in yail.rb, much like default_events.rb
 * Convert *all* existing code to use the new event data (outgoing api skipped until below item is done)
+* Get all event reporting into a reports module and require users to use it if they want it.  Make
+  IRCBot use it by default since it's a lot more sensible in a bot than elsewhere.  Consider allowing
+  a list of included/excluded events.
 * Figure out outgoing events:
   * output_api.rb needs to continue taking the same args, but convert the data to an OutgoingEvent object
     that has all the relevant data
