@@ -35,6 +35,11 @@ module IRCOutputAPI
     report "bot: #{line.inspect}" if report
   end
 
+  # Consolidated handling for privmsg output - note that this does NOT use the output buffer
+  def raw_privmsg(target, text)
+    dispatch OutgoingEvent.new(:type => :privmsg, :target => target, :text => text)
+  end
+
   # Buffers the given event to be sent out when we are able to send something out to the given
   # target.  If buffering isn't turned on, the event will be processed in the next loop of outgoing
   # messages.
@@ -45,43 +50,21 @@ module IRCOutputAPI
     end
   end
 
-  # Calls :outgoing_msg handler, then privmsg to send the message out.  Could
-  # be used to send any privmsg, but you're betting off using act and ctcp
-  # shortcut methods for those types.  Target is a channel or username, text
+  # Buffers an :outgoing_msg event.  Could be used to send any privmsg, but you're betting off
+  # using act and ctcp shortcut methods for those types.  Target is a channel or username, text
   # is the message.
   def msg(target, text)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
-
-    handle(:outgoing_msg, target, text)
-
-    report_string = @log_silent ? '' : "{#{target}} <#{@me}> #{text}"
-    privmsg(target, text, report_string)
+    buffer_output OutgoingEvent.new(:type => :msg, :target => target, :text => text)
   end
 
-  # Calls :outgoing_ctcp handler, then sends CTCP to target channel or user
+  # Buffers an :outgoing_ctcp event.  Target is user or channel, text is message.
   def ctcp(target, text)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
-
-    handle(:outgoing_ctcp, target, text)
-
-    report_string = @log_silent ? '' :  "{#{target}}  [#{@me} #{text}]"
-    privmsg(target, "\001#{text}\001", report_string)
+    buffer_output OutgoingEvent.new(:type => :ctcp, :target => target, :text => text)
   end
 
-  # Calls :outgoing_act handler, then ctcp to send a CTCP ACTION (text) to
-  # a given user or channel (target)
+  # Buffers an :outgoing_act event.  Target is user or channel, text is message.
   def act(target, text)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
-
-    handle(:outgoing_act, target, text)
-
-    ctcp(target, "ACTION #{text}")
+    buffer_output OutgoingEvent.new(:type => :act, :target => target, :text => text)
   end
 
   # Calls :outgoing_notice handler, then outputs raw NOTICE message

@@ -113,6 +113,21 @@ module Defaults
     report "*MOTD* End of MOTD"
   end
 
+  # Sent a privmsg (non-ctcp)
+  def r_out_msg(event)
+    report "{#{target}} <#{@me}> #{text}"
+  end
+
+  # Sent a ctcp
+  def r_out_ctcp(event)
+    report "{#{target}} [#{@me} #{text}]"
+  end
+
+  # Sent ctcp action
+  def r_out_act(event)
+    report "{#{target}} <#{@me}> #{text}"
+  end
+
   # Nickname change failed: already in use.  This needs a rewrite to at
   # least hit a "failed too many times" handler of some kind - for a bot,
   # quitting may be fine, but for something else, we may want to prompt a
