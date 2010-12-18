@@ -152,6 +152,9 @@ module LegacyEvents
       when :incoming_error
         return handle(event.type, event.text)
 
+      when :outgoing_privmsg, :outgoing_msg, :outgoing_ctcp, :outgoing_act
+        return handle(event.type, event.target, event.text)
+
       # Unknown line!
       else
         # This should really never happen, but isn't technically an error per se
