@@ -241,10 +241,20 @@ class YAIL
 
     # Outgoing handlers are what make this app actually work - users who override these have to
     # do so very explicitly (no "on_xxx" magic) and will probably break stuff.  Use filters instead!
-    set_callback :outgoing_privmsg, self.method(:magic_out_privmsg)
+
+    # These three need magic to buffer their output, so can't use our simpler create_command system
     set_callback :outgoing_msg, self.method(:magic_out_msg)
     set_callback :outgoing_ctcp, self.method(:magic_out_ctcp)
     set_callback :outgoing_act, self.method(:magic_out_act)
+
+    # All PRIVMSG events eventually hit this - it's a legacy thing, and kinda dumb, but there you
+    # have it.  Just sends a raw PRIVMSG out to the socket.
+    create_command :privmsg, :target, :text, "PRIVMSG :target ::text"
+
+    # The rest of these should be fairly obvious
+    create_command :notice, :target, :text, "NOTICE :target ::text"
+    create_command :ctcpreply, :target, :text, "NOTICE :target :\001:text\001"
+    create_command :mode, :target, :modes, :objects, "MODE :target :modes :objects"
   end
 
   # Prepares @socket for use and defaults @dead_socket to false

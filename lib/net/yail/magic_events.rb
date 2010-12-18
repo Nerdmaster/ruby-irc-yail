@@ -40,22 +40,19 @@ module Magic
 
   # User calls msg, sends a simple message out to the event's target (user or channel)
   def magic_out_msg(event)
-    raw_privmsg(event.target, event.text)
+    privmsg(event.target, event.text)
   end
 
+  # CTCP
   def magic_out_ctcp(event)
-    raw_privmsg(event.target, "\001#{event.text}\001")
+    privmsg(event.target, "\001#{event.text}\001")
   end
 
+  # CTCP ACTION
   def magic_out_act(event)
-    raw_privmsg(event.target, "\001ACTION #{event.text}\001")
+    privmsg(event.target, "\001ACTION #{event.text}\001")
   end
 
-  # All PRIVMSG events eventually hit this - it's a legacy thing, and kinda dumb, but there you
-  # have it.  Just sends a raw PRIVMSG out to the socket.
-  def magic_out_privmsg(event)
-    raw("PRIVMSG #{event.target} :#{event.text}", false)
-  end
 end
 
 end

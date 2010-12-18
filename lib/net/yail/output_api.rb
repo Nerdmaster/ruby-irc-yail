@@ -35,11 +35,6 @@ module IRCOutputAPI
     report "bot: #{line.inspect}" if report
   end
 
-  # Consolidated handling for privmsg output - note that this does NOT use the output buffer
-  def raw_privmsg(target, text)
-    dispatch OutgoingEvent.new(:type => :privmsg, :target => target, :text => text)
-  end
-
   # Buffers the given event to be sent out when we are able to send something out to the given
   # target.  If buffering isn't turned on, the event will be processed in the next loop of outgoing
   # messages.
@@ -67,46 +62,43 @@ module IRCOutputAPI
     buffer_output OutgoingEvent.new(:type => :act, :target => target, :text => text)
   end
 
-  # Calls :outgoing_notice handler, then outputs raw NOTICE message
-  def notice(target, text)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
+  # Creates an output command and its handler.  If a block is given, that is used for the handler,
+  # otherwise we take the last string in the args list and use that as a format string for building
+  # the raw output.
+  #
+  # I hate the hackiness here, but it's so much easier than building all the methods manually,
+  # and things like define_method seem to fall short with how much crap this needs to do.
+  def create_command(command, *args, &block)
+    handler = block_given? ? block : nil
+    output_format = args.pop.gsub(/:(\w+)/, '#{event.\1}') unless handler
 
-    handle(:outgoing_notice, target, text)
+    args_string = args.collect {|arg| "#{arg} = ''"}.join(",")
+    event_string = args.collect {|arg| ":#{arg} => #{arg}"}.join(",")
+    command_code = %Q|
+      def #{command}(#{args_string})
+        dispatch Net::YAIL::OutgoingEvent.new(:type => #{command.inspect}, #{event_string})
+      end
+    |
 
-    report "{#{target}} -#{@me}- #{text}" unless @log_silent
-    raw("NOTICE #{target} :#{text}", false)
-  end
+    # Create the command function
+    self.class.class_eval command_code
 
-  # Calls :outgoing_ctcpreply handler, then uses notice method to send the
-  # CTCP text
-  def ctcpreply(target, text)
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
+    # Not all commands are super-easy to handle with a single string, so we set up the handler
+    # from the block if we got one
+    if handler
+      set_callback(command, block)
+    else
+      command_handler = :"magic_out_#{command}"
+      handler_code = %Q|
+        def #{command_handler}(event)
+          raw "#{output_format}", false
+        end
+      |
 
-    handle(:outgoing_ctcpreply, target, text)
-
-    report "{#{target}} [Reply: #{@me} #{text}]" unless @log_silent
-    notice(target, "\001#{text}\001")
-  end
-
-  # Calls :outgoing_mode handler, then mode to set mode(s) on a channel
-  # and possibly specific users (objects).  If modes and objects are blank,
-  # just sends a raw MODE query.
-  def mode(target, modes = '', objects = '')
-    # Dup strings so handler can filter safely
-    target = target.dup
-    modes = modes.dup
-    objects = objects.dup
-
-    handle(:outgoing_mode, target, modes, objects)
-
-    message = "MODE #{target}"
-    message += " #{modes}" unless modes.to_s.empty?
-    message += " #{objects}" unless objects.to_s.empty?
-    raw message
+      self.class.class_eval handler_code
+      # At least setting the callback isn't a giant pile of dumb
+      set_callback(command, command_handler)
+    end
   end
 
   # Calls :outgoing_join handler and then raw JOIN message for a given channel
