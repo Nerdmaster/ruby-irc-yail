@@ -133,17 +133,25 @@ module Reports
 
   # Sent a privmsg (non-ctcp)
   def r_out_msg(event)
-    report "{#{target}} <#{@me}> #{text}"
+    report "{#{event.target}} <#{@me}> #{event.text}"
   end
 
   # Sent a ctcp
   def r_out_ctcp(event)
-    report "{#{target}} [#{@me} #{text}]"
+    report "{#{event.target}} [#{@me} #{event.text}]"
   end
 
   # Sent ctcp action
   def r_out_act(event)
-    report "{#{target}} <#{@me}> #{text}"
+    report "{#{event.target}} <#{@me}> #{event.text}"
+  end
+
+  def r_out_notice(event)
+    report "{#{event.target}} -#{@me}- #{event.text}"
+  end
+
+  def r_out_ctcpreply(event)
+    report "{#{event.target}} [Reply: #{@me} #{event.text}]"
   end
 end
 
