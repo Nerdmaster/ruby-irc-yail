@@ -516,9 +516,7 @@ class YAIL
     # If we didn't match a magic method signature, or we don't have the expected parameters, call
     # parent's method_missing.  Just to be safe, we also return, in case YAIL one day subclasses
     # from something that handles some method_missing stuff.
-    unless (method && event_type) || args.length.zero?
-      return super
-    end
+    return super if method.nil? || event_type.nil? || args.length > 0
 
     self.send(method, event_type, filter_or_callback_method)
   end
