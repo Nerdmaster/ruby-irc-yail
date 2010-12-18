@@ -49,17 +49,17 @@ module IRCOutputAPI
   # using act and ctcp shortcut methods for those types.  Target is a channel or username, text
   # is the message.
   def msg(target, text)
-    buffer_output OutgoingEvent.new(:type => :msg, :target => target, :text => text)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :msg, :target => target, :text => text)
   end
 
   # Buffers an :outgoing_ctcp event.  Target is user or channel, text is message.
   def ctcp(target, text)
-    buffer_output OutgoingEvent.new(:type => :ctcp, :target => target, :text => text)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :ctcp, :target => target, :text => text)
   end
 
   # Buffers an :outgoing_act event.  Target is user or channel, text is message.
   def act(target, text)
-    buffer_output OutgoingEvent.new(:type => :act, :target => target, :text => text)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :act, :target => target, :text => text)
   end
 
   # Creates an output command and its handler.  If a block is given, that is used for the handler,
