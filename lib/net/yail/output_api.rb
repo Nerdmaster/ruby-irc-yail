@@ -30,9 +30,8 @@ module IRCOutputAPI
   # something special on *all* output, please make all output go through this
   # method.  Don't use puts manually.  I will kill violaters.  Legally
   # speaking, that is.
-  def raw(line, report = true)
+  def raw(line)
     @socket.puts line
-    report "bot: #{line.inspect}" if report
   end
 
   # Buffers the given event to be sent out when we are able to send something out to the given

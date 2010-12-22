@@ -2,6 +2,7 @@ module Net
 module IRCEvents
 
 # This is the module for reporting a bunch of crap, included basically for legacy compatibility
+# and bots that need to be easy to use / debug right off the bat
 module Reports
   # Set up reporting filters - allows users who want it to keep reporting in their app relatively
   # easily while getting rid of it for everybody else
@@ -16,10 +17,17 @@ module Reports
     end
 
     outgoing_reporting = [
-      :msg, :act, :ctcp
+      :msg, :act, :ctcp, :ctcpreply, :notice
     ]
     for event in outgoing_reporting
       after_filter(:"outgoing_#{event}", self.method(:"r_out_#{event}") )
+    end
+
+    generic_out_report = [
+      :join, :mode, :part, :quit, :nick, :user, :pass, :oper, :topic, :names, :list, :invite, :kick
+    ]
+    for event in generic_out_report
+      after_filter(:"outgoing_#{event}", self.method(:r_out_generic))
     end
   end
 
@@ -152,6 +160,10 @@ module Reports
 
   def r_out_ctcpreply(event)
     report "{#{event.target}} [Reply: #{@me} #{event.text}]"
+  end
+
+  def r_out_generic(event)
+    report "bot: #{event.raw.inspect}"
   end
 end
 

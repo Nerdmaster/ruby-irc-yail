@@ -480,6 +480,7 @@ class YAIL
     # Add all before-callback stuff to our chain, then the callback itself last
     chain = []
     chain.push @before_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
+    chain.push @before_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
     chain.push @before_filters[event.type]
     chain.push @callback[event.type]
     chain.flatten!
@@ -498,6 +499,7 @@ class YAIL
     chain = []
     chain.push @after_filters[event.type]
     chain.push @after_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
+    chain.push @after_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
     chain.flatten!
     chain.compact!
 
