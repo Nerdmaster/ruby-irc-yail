@@ -71,6 +71,7 @@ class MockIRC
 
       when /^NICK/    then handle_nick(cmd)
       when /^JOIN/    then handle_join(cmd)
+      when /^MODE/    then handle_mode(cmd)
     end
   end
 
@@ -83,6 +84,14 @@ class MockIRC
     end
 
     add_output ":#{SERVER} ERROR :You need to authenticate or something"
+  end
+
+  # Dumb handling of a MODE command
+  def handle_mode(cmd)
+    # Eventually this could be used to make really interesting mode messages
+    cmd =~ /^MODE(\s+\S+)?(\s+\S+)?(\s+\S+)?$/
+
+    add_output ":#{@nick}!#{USERHOST} MODE#{$2}#{$3}"
   end
 
   # Handles a NICK request, but no error if no nick set - not sure what a real server does here
@@ -135,7 +144,7 @@ class MockIRC
     channel = $1
     pass = $2
     if "#banned" == channel
-      add_output ":#{SERVER} 474 T-meister #{channel}:Cannot join channel (+b)"
+      add_output ":#{SERVER} 474 #{@nick} #{channel}:Cannot join channel (+b)"
       return
     end
 
