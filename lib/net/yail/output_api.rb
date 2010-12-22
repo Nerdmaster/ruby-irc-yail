@@ -62,191 +62,72 @@ module IRCOutputAPI
     buffer_output Net::YAIL::OutgoingEvent.new(:type => :act, :target => target, :text => text)
   end
 
-  # Creates an output command and its handler.  If a block is given, that is used for the handler,
-  # otherwise we take the last string in the args list and use that as a format string for building
-  # the raw output.
+  # Creates an output command and its handler.  output_base is a template of the command without
+  # any conditional arguments (for simple commands this is the full template).  args is a list of
+  # argument symbols to determine how the event is built and handled.  If an argument symbol is
+  # followed by a string, that string is conditionally appended to the output in the handler if the
+  # event has data for that argument.
   #
-  # I hate the hackiness here, but it's so much easier than building all the methods manually,
-  # and things like define_method seem to fall short with how much crap this needs to do.
-  def create_command(command, *args, &block)
-    handler = block_given? ? block : nil
-    output_format = args.pop.gsub(/:(\w+)/, '#{event.\1}') unless handler
+  # I hate the hackiness here, but it's so much easier to build the commands and handlers with an
+  # ugly one-liner than manually, and things like define_method seem to fall short with how much
+  # crap this needs to do.
+  def create_command(command, output_base, *opts)
+    event_opts = lambda {|text| text.gsub(/:(\w+)/, '#{event.\1}') }
 
-    args_string = args.collect {|arg| "#{arg} = ''"}.join(",")
+    output_base = event_opts.call(output_base)
+
+    # Create a list of actual arg symbols and templates for optional args
+    args = []
+    optional_arg_templates = {}
+    last_symbol = nil
+    for opt in opts
+      case opt
+      when Symbol
+        args.push opt
+        last_symbol = opt
+      when String
+        raise ArgumentError.new("create_command optional argument must have an argument symbol preceding them") unless last_symbol
+        optional_arg_templates[last_symbol] = event_opts.call(opt)
+        last_symbol = nil
+      end
+    end
+
+    # Format strings for command args and event creation
     event_string = args.collect {|arg| ":#{arg} => #{arg}"}.join(",")
+    event_string = ", #{event_string}" unless event_string.empty?
+    args_string = args.collect {|arg| "#{arg} = ''"}.join(",")
+
+    # Create the command function
     command_code = %Q|
       def #{command}(#{args_string})
-        dispatch Net::YAIL::OutgoingEvent.new(:type => #{command.inspect}, #{event_string})
+        dispatch Net::YAIL::OutgoingEvent.new(:type => #{command.inspect}#{event_string})
+      end
+    |
+    self.class.class_eval command_code
+
+    # Create the handler piece by piece - wow how ugly this is!
+    command_handler = :"magic_out_#{command}"
+    handler_code = %Q|
+      def #{command_handler}(event)
+        output_string = "#{output_base}"
+    |
+    for arg in args
+      if optional_arg_templates[arg]
+        handler_code += %Q|
+          output_string += "#{optional_arg_templates[arg]}" unless event.#{arg}.to_s.empty?
+        |
+      end
+    end
+    handler_code += %Q|
+        raw output_string
       end
     |
 
-    # Create the command function
-    self.class.class_eval command_code
+    self.class.class_eval handler_code
 
-    # Not all commands are super-easy to handle with a single string, so we set up the handler
-    # from the block if we got one
-    if handler
-      set_callback(command, block)
-    else
-      command_handler = :"magic_out_#{command}"
-      handler_code = %Q|
-        def #{command_handler}(event)
-          raw "#{output_format}", false
-        end
-      |
-
-      self.class.class_eval handler_code
-      # At least setting the callback isn't a giant pile of dumb
-      set_callback(command, command_handler)
-    end
+    # At least setting the callback isn't a giant pile of dumb
+    set_callback :"outgoing_#{command}", self.method(command_handler)
   end
-
-  # Calls :outgoing_join handler and then raw JOIN message for a given channel
-  def join(target, pass = '')
-    # Dup strings so handler can filter safely
-    target = target.dup
-    pass = pass.dup
-
-    handle(:outgoing_join, target, pass)
-
-    text = "JOIN #{target}"
-    text += " #{pass}" unless pass.empty?
-    raw text
-  end
-
-  # Calls :outgoing_part handler and then raw PART for leaving a given channel
-  # (with an optional message)
-  def part(target, text = '')
-    # Dup strings so handler can filter safely
-    target = target.dup
-    text = text.dup
-
-    handle(:outgoing_part, target, text)
-
-    request = "PART #{target}";
-    request += " :#{text}" unless text.to_s.empty?
-    raw request
-  end
-
-  # Calls :outgoing_quit handler and then raw QUIT message with an optional
-  # reason
-  def quit(text = '')
-    # Dup strings so handler can filter safely
-    text = text.dup
-
-    handle(:outgoing_quit, text)
-
-    request = "QUIT";
-    request += " :#{text}" unless text.to_s.empty?
-    raw request
-  end
-
-  # Calls :outgoing_nick handler and then sends raw NICK message to change
-  # nickname.
-  def nick(new_nick)
-    # Dup strings so handler can filter safely
-    new_nick = new_nick.dup
-
-    handle(:outgoing_nick, new_nick)
-
-    raw "NICK :#{new_nick}"
-  end
-
-  # Identifies ourselves to the server.  Calls :outgoing_user and sends raw
-  # USER command.
-  def user(username, myaddress, address, realname)
-    # Dup strings so handler can filter safely
-    username = username.dup
-    myaddress = myaddress.dup
-    address = address.dup
-    realname = realname.dup
-
-    handle(:outgoing_user, username, myaddress, address, realname)
-
-    raw "USER #{username} #{myaddress} #{address} :#{realname}"
-  end
-
-  # Sends a password to the server.  This *must* be sent before NICK/USER.
-  # Calls :outgoing_pass and sends raw PASS command.
-  def pass(password)
-    # Dupage
-    password = password.dup
-
-    handle(:outgoing_pass, password)
-    raw "PASS #{password}"
-  end
-
-  # Sends an op request.  Calls :outgoing_oper and raw OPER command.
-  def oper(user, password)
-    # Dupage
-    user = user.dup
-    password = password.dup
-
-    handle(:outgoing_oper, user, password)
-    raw "OPER #{user} #{password}"
-  end
-
-  # Gets or sets the topic.  Calls :outgoing_topic and raw TOPIC command
-  def topic(channel, new_topic = nil)
-    # Dup for filter safety in outgoing handler
-    channel = channel.dup
-    new_topic = new_topic.dup unless new_topic.nil?
-
-    handle(:outgoing_topic, channel, new_topic)
-    output = "TOPIC #{channel}"
-    output += " :#{new_topic}" unless new_topic.to_s.empty?
-    raw output
-  end
-
-  # Gets a list of users and channels if channel isn't specified.  If channel
-  # is specified, only shows users in that channel.  Will not show invisible
-  # users or channels.  Calls :outgoing_names and raw NAMES command.
-  def names(channel = nil)
-    channel = channel.dup unless channel.nil?
-
-    handle(:outgoing_names, channel)
-    output = "NAMES"
-    output += " #{channel}" unless channel.to_s.empty?
-    raw output
-  end
-
-  # I don't know what the server param is for, but it's in the RFC.  If
-  # channel is blank, lists all visible, otherwise just lists the channel in
-  # question.  Calls :outgoing_list and raw LIST command.
-  def list(channel = nil, server = nil)
-    channel = channel.dup unless channel.nil?
-    server = server.dup unless server.nil?
-
-    handle(:outgoing_list, channel, server)
-    output = "LIST"
-    output += " #{channel}" if channel
-    output += " #{server}" if server
-    raw output
-  end
-
-  # Invites a user to a channel.  Calls :outgoing_invite and raw INVITE
-  # command.
-  def invite(nick, channel)
-    channel = channel.dup
-    server = server.dup
-
-    handle(:outgoing_invite, nick, channel)
-    raw "INVITE #{nick} #{channel}"
-  end
-
-  # Kicks the given user from the channel with the optional comment.  Calls
-  # :outgoing_kick and issues a raw KICK command.
-  def kick(nick, channel, comment = nil)
-    nick = nick.dup
-    channel = channel.dup
-    comment = comment.dup unless comment.nil?
-
-    handle(:outgoing_kick, nick, channel, comment)
-    output = "KICK #{channel} #{nick}"
-    output += " :#{comment}" unless comment.to_s.empty?
-    raw output
-  end
-
 end
 
 end
