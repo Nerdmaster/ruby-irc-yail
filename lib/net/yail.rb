@@ -113,6 +113,13 @@ class YAIL
     @password           = options[:server_password]
     @ssl                = options[:use_ssl] || false
 
+    #############################################
+    # TODO: DEPRECATED!!
+    #
+    # TODO: Delete this!
+    #############################################
+    @legacy_handlers = Hash.new
+
     # Shared resources for threads to try and coordinate....  I know very
     # little about thread safety, so this stuff may be a terrible disaster.
     # Please send me better approaches if you are less stupid than I.
@@ -477,12 +484,11 @@ class YAIL
   # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses hacky
   # :incoming_any event if event object is of IncomingEvent type.
   def dispatch(event)
-    # Add all before-callback stuff to our chain, then the callback itself last
+    # Add all before-callback stuff to our chain
     chain = []
     chain.push @before_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
     chain.push @before_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
     chain.push @before_filters[event.type]
-    chain.push @callback[event.type]
     chain.flatten!
     chain.compact!
 
@@ -495,8 +501,9 @@ class YAIL
     # Legacy handler - return if true, since that's how the old system works
     return if legacy_process_event(event)
 
-    # Add all after-callback stuff to a new chain
+    # Add new callback and all after-callback stuff to a new chain
     chain = []
+    chain.push @callback[event.type]
     chain.push @after_filters[event.type]
     chain.push @after_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
     chain.push @after_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event

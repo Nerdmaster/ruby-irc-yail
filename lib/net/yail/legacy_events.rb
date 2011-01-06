@@ -12,8 +12,6 @@ module LegacyEvents
   def prepend_handler(event, *procs, &block)
     raise "Cannot change handlers while threads are listening!" if @ioloop_thread
 
-    @legacy_handlers ||= Hash.new
-
     @log.warn "[DEPRECATED] - Net::YAIL#prepend_handler is deprecated as of 1.5.0 - please see documentation on the new " +
         "event handling model methods - http://ruby-irc-yail.nerdbucket.com/"
 
@@ -43,7 +41,6 @@ module LegacyEvents
   # method, but if you get "clever," you're on your own.
   def handle(event, *arguments)
     # Don't bother with anything if there are no handlers registered.
-    @legacy_handlers ||= Hash.new
     return false unless Array === @legacy_handlers[event]
 
     @log.debug "+++EVENT HANDLER: Handling event #{event} via #{@legacy_handlers[event].inspect}:"
@@ -81,11 +78,8 @@ module LegacyEvents
 
   # Gets some input, sends stuff off to a handler.  Yay.
   def legacy_process_event(event)
-    # HACK TODO TODO: need to deal with other event handling here - particularly outgoing events
-    return false unless Net::YAIL::IncomingEvent === event
-
-    # Allow global handler to break the chain, filter the line, whatever.  For
-    # this release, it's a hack.  2.0 will be better.
+    # Allow global handler to break the chain, filter the line, whatever.  When we ditch these legacy
+    # events, this code will finally die!
     if (Net::YAIL::IncomingEvent === event && Array === @legacy_handlers[:incoming_any])
       for handler in @legacy_handlers[:incoming_any]
         result = handler.call(event.raw)
@@ -152,14 +146,63 @@ module LegacyEvents
       when :incoming_error
         return handle(event.type, event.text)
 
-      when :outgoing_privmsg, :outgoing_msg, :outgoing_ctcp, :outgoing_act
+      when :outgoing_privmsg, :outgoing_msg, :outgoing_ctcp, :outgoing_act, :outgoing_notice, :outgoing_ctcpreply
         return handle(event.type, event.target, event.text)
 
-      # Unknown line!
+      when :outgoing_mode
+        return handle(event.type, event.target, event.modes, event.objects)
+
+      when :outgoing_join
+        return handle(event.type, event.channel, event.password)
+
+      when :outgoing_part
+        return handle(event.type, event.channel, event.text)
+
+      when :outgoing_quit
+        return handle(event.type, event.text)
+
+      when :outgoing_nick
+        return handle(event.type, event.nickname)
+
+      when :outgoing_user
+        return handle(event.type, event.username, event.hostname, event.servername, event.realname)
+
+      when :outgoing_pass
+        return handle(event.type, event.password)
+
+      when :outgoing_oper
+        return handle(event.type, event.user, event.password)
+
+      when :outgoing_topic
+        return handle(event.type, event.channel, event.topic)
+
+      when :outgoing_names
+        return handle(event.type, event.channel)
+
+      when :outgoing_list
+        return handle(event.type, event.channel, event.server)
+
+      when :outgoing_invite
+        return handle(event.type, event.nick, event.channel)
+
+      when :outgoing_kick
+        return handle(event.type, event.nick, event.channel, event.reason)
+
+      # Unknown line - if an incoming event, we need to log it as that shouldn't be able to happen,
+      # but we don't want to kill somebody's app for it.  An outgoing event that's part of the
+      # system should NEVER hit this, so we throw an error in that case.  Custom events just get
+      # handled with no arguments, to allow for things like :irc_loop.
       else
-        # This should really never happen, but isn't technically an error per se
-        @log.warn 'Unknown line: %s!' % event.raw.inspect
-        return handle(:incoming_miscellany, event.raw)
+        case event
+          when Net::YAIL::IncomingEvent
+            @log.warn 'Unknown line: %s!' % event.raw.inspect
+            @log.warn "Please report this to the github repo at https://github.com/Nerdmaster/ruby-irc-yail/issues"
+            return handle(:incoming_miscellany, event.raw)
+          when Net::YAIL::OutgoingEvent
+            raise "Unknown outgoing event: #{event.inspect}"
+          else
+            handle(event.type)
+        end
     end
   end
 end
