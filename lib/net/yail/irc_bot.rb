@@ -1,11 +1,12 @@
 require 'rubygems'
 require 'net/yail'
+require 'net/yail/report_events'
 
 # My abstraction from adapter to a real bot.
 class IRCBot
-  attr_reader :irc
+  include Net::IRCEvents::Reports
 
-  public
+  attr_reader :irc
 
   # Creates a new bot.  Options are anything you can pass to the Net::YAIL constructor:
   # * <tt>:irc_network</tt>: Name/IP of the IRC server - backward-compatibility hack, and is
@@ -60,6 +61,7 @@ class IRCBot
   # add_custom_handlers to allow auto-creation in case of a restart.
   def connect_socket
     @irc = Net::YAIL.new(@options)
+    setup_reporting(@irc)
 
     # Simple hook for welcome to allow auto-joining of the channel
     @irc.on_welcome self.method(:welcome)
@@ -95,7 +97,7 @@ class IRCBot
     while true
       until @irc.dead_socket
         sleep 15
-        @irc.dispatch CustomEvent.new(:type => :irc_loop)
+        @irc.dispatch Net::YAIL::CustomEvent.new(:type => :irc_loop)
         Thread.pass
       end
 
@@ -109,7 +111,7 @@ class IRCBot
 
   private
   # Basic handler for joining our channels upon successful registration
-  def welcome(text, args)
+  def welcome(event)
     @options[:channels].each {|channel| @irc.join(channel) }
   end
 

@@ -6,28 +6,28 @@ module IRCEvents
 module Reports
   # Set up reporting filters - allows users who want it to keep reporting in their app relatively
   # easily while getting rid of it for everybody else
-  def setup_reporting
+  def setup_reporting(yail)
     incoming_reporting = [
       :msg, :act, :notice, :ctcp, :ctcpreply, :mode, :join, :part, :kick,
       :quit, :nick, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
       :topicinfo, :endofnames, :motd, :motdstart, :endofmotd, :invite
     ]
     for event in incoming_reporting
-      after_filter(:"incoming_#{event}", self.method(:"r_#{event}") )
+      yail.after_filter(:"incoming_#{event}", self.method(:"r_#{event}") )
     end
 
     outgoing_reporting = [
       :msg, :act, :ctcp, :ctcpreply, :notice
     ]
     for event in outgoing_reporting
-      after_filter(:"outgoing_#{event}", self.method(:"r_out_#{event}") )
+      yail.after_filter(:"outgoing_#{event}", self.method(:"r_out_#{event}") )
     end
 
     generic_out_report = [
       :join, :mode, :part, :quit, :nick, :user, :pass, :oper, :topic, :names, :list, :invite, :kick
     ]
     for event in generic_out_report
-      after_filter(:"outgoing_#{event}", self.method(:r_out_generic))
+      yail.after_filter(:"outgoing_#{event}", self.method(:r_out_generic))
     end
   end
 
@@ -163,7 +163,7 @@ module Reports
   end
 
   def r_out_generic(event)
-    report "bot: #{event.raw.inspect}"
+    report "bot: #{event.inspect}"
   end
 end
 

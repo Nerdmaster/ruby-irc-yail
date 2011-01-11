@@ -240,11 +240,13 @@ class YAIL
     # their hands dirty
     set_callback(:outgoing_begin_connection, self.method(:out_begin_connection))
     on_ping self.method(:magic_ping)
-    on_welcome self.method(:magic_welcome)
 
     # Nick change magically setting @me is necessary as a filter - user can handle the event and do
     # anything he wants, but this should still run.
     hearing_nick self.method(:magic_nick)
+
+    # Welcome magic also sets @me magically, so it's a filter
+    hearing_welcome self.method(:magic_welcome)
 
     # Outgoing handlers are what make this app actually work - users who override these have to
     # do so very explicitly (no "on_xxx" magic) and will probably break stuff.  Use filters instead!
@@ -498,8 +500,11 @@ class YAIL
       return if event.handled?
     end
 
-    # Legacy handler - return if true, since that's how the old system works
-    return if legacy_process_event(event)
+    # Legacy handler - return if true, since that's how the old system works - EXCEPTION for outgoing events, since
+    # the old system didn't allow those to be skipped!
+    if legacy_process_event(event)
+      return unless Net::YAIL::OutgoingEvent === event
+    end
 
     # Add new callback and all after-callback stuff to a new chain
     chain = []

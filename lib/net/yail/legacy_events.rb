@@ -188,6 +188,9 @@ module LegacyEvents
       when :outgoing_kick
         return handle(event.type, event.nick, event.channel, event.reason)
 
+      when :outgoing_begin_connection
+        return handle(event.type, event.username, event.address, event.realname)
+
       # Unknown line - if an incoming event, we need to log it as that shouldn't be able to happen,
       # but we don't want to kill somebody's app for it.  An outgoing event that's part of the
       # system should NEVER hit this, so we throw an error in that case.  Custom events just get
