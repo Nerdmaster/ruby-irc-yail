@@ -81,7 +81,7 @@ module Reports
   # Reports nick change unless nickname is us - we check nickname here since
   # the magic method changes @me to the new nickname.
   def r_nick(event)
-    report "#{event.nick} changed nick to #{event.text}" unless nickname == @me
+    report "#{event.nick} changed nick to #{event.text}" unless event.nick == @me
   end
 
   def r_bannedfromchan(event)
@@ -94,7 +94,7 @@ module Reports
     report "Bad channel key (password) for #{$1}"
   end
 
-  def r_welcome(*args)
+  def r_welcome(event)
     report "*** Logged in as #{@me}. ***"
   end
 
