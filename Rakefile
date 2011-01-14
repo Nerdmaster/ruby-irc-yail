@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.autorequire       = "net/yail"
   s.test_files        = Dir.glob('tests/*.rb')
   s.has_rdoc          = true
-  s.rdoc_options      = ['--main', 'lib/net/yail.rb']
+  s.rdoc_options      = ['--main', 'Net::YAIL']
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
