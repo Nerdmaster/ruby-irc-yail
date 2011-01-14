@@ -501,8 +501,8 @@ class YAIL
     end
 
     # Legacy handler - return if true, since that's how the old system works - EXCEPTION for outgoing events, since
-    # the old system didn't allow those to be skipped!
-    if legacy_process_event(event)
+    # the old system didn't allow the outgoing "core" code to be skipped!
+    if true == legacy_process_event(event)
       return unless Net::YAIL::OutgoingEvent === event
     end
 
