@@ -7,6 +7,8 @@ module Reports
   # Set up reporting filters - allows users who want it to keep reporting in their app relatively
   # easily while getting rid of it for everybody else
   def setup_reporting(yail)
+    @yail = yail
+
     incoming_reporting = [
       :msg, :act, :notice, :ctcp, :ctcpreply, :mode, :join, :part, :kick,
       :quit, :nick, :welcome, :bannedfromchan, :badchannelkey, :channelurl, :topic,
@@ -79,9 +81,9 @@ module Reports
   end
 
   # Reports nick change unless nickname is us - we check nickname here since
-  # the magic method changes @me to the new nickname.
+  # the magic method changes @yail.me to the new nickname.
   def r_nick(event)
-    report "#{event.nick} changed nick to #{event.text}" unless event.nick == @me
+    report "#{event.nick} changed nick to #{event.text}" unless event.nick == @yail.me
   end
 
   def r_bannedfromchan(event)
@@ -95,7 +97,7 @@ module Reports
   end
 
   def r_welcome(event)
-    report "*** Logged in as #{@me}. ***"
+    report "*** Logged in as #{@yail.me}. ***"
   end
 
   # Channel URL
@@ -141,25 +143,25 @@ module Reports
 
   # Sent a privmsg (non-ctcp)
   def r_out_msg(event)
-    report "{#{event.target}} <#{@me}> #{event.text}"
+    report "{#{event.target}} <#{@yail.me}> #{event.text}"
   end
 
   # Sent a ctcp
   def r_out_ctcp(event)
-    report "{#{event.target}} [#{@me} #{event.text}]"
+    report "{#{event.target}} [#{@yail.me} #{event.text}]"
   end
 
   # Sent ctcp action
   def r_out_act(event)
-    report "{#{event.target}} <#{@me}> #{event.text}"
+    report "{#{event.target}} <#{@yail.me}> #{event.text}"
   end
 
   def r_out_notice(event)
-    report "{#{event.target}} -#{@me}- #{event.text}"
+    report "{#{event.target}} -#{@yail.me}- #{event.text}"
   end
 
   def r_out_ctcpreply(event)
-    report "{#{event.target}} [Reply: #{@me} #{event.text}]"
+    report "{#{event.target}} [Reply: #{@yail.me} #{event.text}]"
   end
 
   def r_out_generic(event)
