@@ -55,7 +55,7 @@ How to prepare your code for 2.0:
 * Use the documentation to determine event methods available for a given event.  In a pinch, you can use this to help see what's available:
       $stderr.puts "Events of type #{event.type} have the following methods: #{event.public_methods(false).inspect}"
 * Remove all direct calls to handle().  For custom events, use a call to dispatch() with a Net::YAIL::CustomEvent.new(:type => :blah, ...)
-* When you need to break the event handling chain, call "event.handle!".  This name is meant to
+* When you need to break the event handling chain, call "event.handled!".  This name is meant to
   alert you that it has side effects and you usually shouldn't need to call it now that reporting
   is no longer forced on you so painfully.
   * Note that return values from event handlers no longer hold ANY meaning

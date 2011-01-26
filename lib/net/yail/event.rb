@@ -32,9 +32,9 @@ class YAIL
       return super().gsub(self.class.name, "%s [%s]" % [self.class.name, @type.to_s])
     end
 
-    # Unintuitive name to avoid accidental use - we don't want it to be the norm to stop the event
-    # handling chain anymore!  Filters + callback should make that a rarity.
-    def set_handled_true; @handled = true; end
+    # Slightly unintuitive name to avoid accidental use - we don't want it to be the norm to stop
+    # the event handling chain anymore!  Filters + callback should make that a rarity.
+    def handled!; @handled = true; end
 
     # Cheesy shortcut to @handled in "boolean" form
     def handled?; return @handled; end
