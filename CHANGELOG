@@ -1,3 +1,67 @@
+Version 1.5
+===========
+
+API changes:
+------------
+
+Deprecating prepend_handler in favor of before_filter, set_callback, and after_filter.
+prepend_handler and current event system stay in for a while, but won't last forever....
+
+Related to above: callback and filters must very explicitly break the chain, and it should
+only be done in very specific situations.
+
+Callbacks should be looked at as the core code, the response to an action.  They
+should be used to actually handle an event: a bot's "PRIVMSG #channel Hey there, bob" output on
+a "bob joins the channel" message.  Filters are more for behind-the-scenes stuff: responding to a
+PING, storing stats, logging, manipulating input/output, changing variables (bot's nickname on an
+:incoming_nick event), etc.
+
+A plugin could use a filter where one isn't really appropriate, and this may make sense for a
+plugin built for a very specific purpose - but the *final* program should be the only thing that
+registers the callback, because there can be only one.  When you call set_callback, any previous
+callback is lost, PERIOD.
+
+Looking at this like Rails, the callback would be the action, while filters would be... filters.
+Looking at it like wordpress, the callback is the core WP code, while the filters are your plugin
+actions.  One plugin author shouldn't be breaking another's ability to work.  Again, exceptions to
+every rule: for instance, an "ignore user" plugin could stop an event from ever reaching the
+callback.
+
+1.5 issues
+----------
+
+Though I got it working fairly well, the legacy support isn't 100% compatible with 1.4.3:
+* Reporting is now a separate module you have to include manually (or subclass IRCBot)
+* Outgoing events have been modified heavily.  They are now callbacks instead of "core"
+  functionality, and may run differently than expected.  For instance, you used to be unable to
+  override the core output of a PRIVMSG; now you can.  You used to not be able to "break the chain"
+  before an outgoing PRIVMSG command; now you can.  To keep legacy funcationality similar to how it
+  worked previously, legacy events using the prepend_handler system will *not* be able to override 
+  or break the chain for outgoing events.  But this comes at the cost of things potentially being
+  out of order from what you're used to if you're trying to mix legacy handlers and new filters.
+  The reporting module is, of course, using the new filters, so they may act strangely.
+  * The output API should be exactly the same as it used to be, so for a simple app, you may not
+    notice the difference.
+* Generally speaking, mixing legacy and new handlers will result in interesting behaviors.  Try to
+  update your app to use the new system if you want the full capabilities of the new API.
+
+How to prepare your code for 2.0:
+---------------------------------
+
+* Convert all handlers to callbacks or filters as described in the documentation (latest stable
+  version's docs are always available at http://ruby-irc-yail.nerdbucket.com/)
+* Use on_xxx, hearing_xxx, heard_xxx, saying_xxx, and said_xxx if they simplify your code
+* Handlers need only take a single parameter now, the event object itself
+* Use the documentation to determine event methods available for a given event.  In a pinch, you can use this to help see what's available:
+      $stderr.puts "Events of type #{event.type} have the following methods: #{event.public_methods(false).inspect}"
+* Remove all direct calls to handle().  For custom events, use a call to dispatch() with a Net::YAIL::CustomEvent.new(:type => :blah, ...)
+* When you need to break the event handling chain, call "event.handle!".  This name is meant to
+  alert you that it has side effects and you usually shouldn't need to call it now that reporting
+  is no longer forced on you so painfully.
+  * Note that return values from event handlers no longer hold ANY meaning
+
+Anything not well-documented, confusing, or done wrong?  Yell at me on github and maybe I'll fix it.
+
 1.4.3
 =====
 
