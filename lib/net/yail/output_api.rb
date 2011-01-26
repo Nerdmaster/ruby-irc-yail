@@ -1,30 +1,8 @@
 module Net
 
-# All output APIs live here.  In most cases, an outgoing handler will get a
-# call, but will not be able to stop the socket output since that's sorta
-# an essential part of this whole library.
-#
-# ==Argument Duping
-#
-# Output APIs dup incoming args before sending them off to handlers.  This
-# is a mechanism that I think could be done better, but I can't figure a good
-# way to do it at the moment.  The reason this is necessary is for a specific
-# situation where a bot has an array of response messages, and needs to filter
-# those messages.  A call to "msg(messages[rand(10)])" with a handler on :outgoing_msg
-# that does something like <code>text.gsub!('a', '@')</code> (like a leetspeek
-# filter) shouldn't destroy the original data in the messages array.
-#
-# This could be left up to the programmer, but it seems like something that
-# a library should own - protecting the programmer for having to remember that
-# sort of crap, especially if the app is calling msg, act, ctcp, etc. in
-# various ways from multiple points in the code....
-#
-# ==Apologies, good sirs
-# 
-# If a method exists in this module, and it isn't the +raw+ method, chances
-# are it's got a handler in the form of :outgoing_<method name>.  I am hoping
-# I document all of those in the main Net::YAIL code, but if I miss one, I
-# apologize.
+# This module is responsible for the raw socket output, buffering of all "message" types of
+# events, and exposing the magic to create a new output command + handler.  All output methods
+# are documented in the main Net::YAIL documentation.
 module IRCOutputAPI
   # Spits a raw string out to the server - in case a subclass wants to do
   # something special on *all* output, please make all output go through this
