@@ -51,7 +51,8 @@ check out the IRCBot source code.  Below is just a very simple example:
 
 Now we've built a simple IRC listener that will connect to a (probably
 invalid) network, identify itself, and sit around waiting for the welcome
-message.  After this has occurred, we join a channel and return false.
+message.  After this has occurred, we join a channel.  If invited to another
+channel, we will join it.  We spit out info about all incoming PINGs.
 
 Filters and callbacks:
 ==============
@@ -113,8 +114,8 @@ Features of YAIL:
   the library.  I'd *love* input here if anybody can tell me why this is a bad
   idea....
 * Unlimited before- and after-callback filters allow for building a modular
-  framwork on top of YAIL.
-* There is no only ONE callback per event as of YAIL 1.5 (2.0 will actually
+  framework on top of YAIL.
+* There is now only ONE callback per event as of YAIL 1.5 (2.0 will actually
   remove the code supporting the "legacy" event system).  This is a bit more
   constrictive than some libraries, but makes it a lot more clear what is the
   definitive handler of an event versus what provides functionality separate
@@ -122,12 +123,8 @@ Features of YAIL:
 * Easy to build a simple bot without subclassing anything.  One gripe I had
   with IRCSocket was that it was painful to do anything without subclassing
   and overriding methods.  No need here.
-* Lots of built-in reporting.  You may hate this part, but for a bot, it's
-  really handy to have most incoming data reported on some level.  I may make
-  this optional at some point, but only if people complain, since I haven't
-  yet seen a need to do so....
-  * This is being deprecated soon due to popular demand.  Don't expect to see
-    forced reporting by 2.0 (though I will probably still have a module for it)
+* Lots of built-in reporting comes free by subclassing IRCBot, but is no longer
+  required otherwise.
 * Built-in PRIVMSG buffering!  You can of course choose to not buffer, but by
   default you cannot send more than one message to a given target (user or
   channel) more than once per second.  Additionally, this buffering method is
