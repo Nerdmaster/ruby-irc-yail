@@ -56,7 +56,7 @@ module Reports
   end
 
   def r_mode(event)
-    report "{%s} %s sets mode %s %s" % [event.channel, event.nick, event.text, event.targets.join(' ')]
+    report "{%s} %s sets mode %s %s" % [event.channel, event.from, event.text, event.targets.join(' ')]
   end
 
   def r_join(event)
