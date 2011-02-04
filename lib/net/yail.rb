@@ -258,24 +258,24 @@ class YAIL
 
     # All PRIVMSG events eventually hit this - it's a legacy thing, and kinda dumb, but there you
     # have it.  Just sends a raw PRIVMSG out to the socket.
-    create_command :privmsg, "PRIVMSG :target ::text", :target, :text
+    create_command :privmsg, "PRIVMSG :target ::message", :target, :message
 
     # The rest of these should be fairly obvious
-    create_command :notice, "NOTICE :target ::text", :target, :text
-    create_command :ctcpreply, "NOTICE :target :\001:text\001", :target, :text
+    create_command :notice, "NOTICE :target ::message", :target, :message
+    create_command :ctcpreply, "NOTICE :target :\001:message\001", :target, :message
     create_command :mode,   "MODE", :target, " :target", :modes, " :modes", :objects, " :objects"
     create_command :join,   "JOIN :channel", :channel, :password, " :password"
-    create_command :part,   "PART :channel", :channel, :text, " ::text"
-    create_command :quit,   "QUIT", :text, " ::text"
-    create_command :nick,   "NICK ::nickname", :nickname
+    create_command :part,   "PART :channel", :channel, :message, " ::message"
+    create_command :quit,   "QUIT", :message, " ::message"
+    create_command :nick,   "NICK ::nick", :nick
     create_command :user,   "USER :username :hostname :servername ::realname", :username, :hostname, :servername, :realname
     create_command :pass,   "PASS :password", :password
     create_command :oper,   "OPER :user :password", :user, :password
-    create_command :topic,  "TOPIC :channel", :channel, :new_topic, " ::new_topic"
+    create_command :topic,  "TOPIC :channel", :channel, :topic, " ::topic"
     create_command :names,  "NAMES", :channel, " :channel"
     create_command :list,   "LIST", :channel, " :channel", :server, " :server"
     create_command :invite, "INVITE :nick :channel", :nick, :channel
-    create_command :kick,   "KICK :channel :nick", :nick, :channel, :reason, " ::reason"
+    create_command :kick,   "KICK :channel :nick", :nick, :channel, :message, " ::message"
   end
 
   # Prepares @socket for use and defaults @dead_socket to false

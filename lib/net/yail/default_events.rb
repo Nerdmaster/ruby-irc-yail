@@ -15,7 +15,7 @@ module Defaults
   # TODO: This should really not even be here.  Client should have full control over whether or not
   # they want this.  Base IRC bot class should have this, but not the core YAIL lib.
   def _nicknameinuse(event)
-    event.text =~ /^(\S+)/
+    event.message =~ /^(\S+)/
     report "Nickname #{$1} is already in use."
 
     if (!@registered)
@@ -38,7 +38,7 @@ module Defaults
   #
   # TODO: Either store this data silently or ditch this code - this verbosity doesn't belong in a core lib
   def _namreply(event)
-    event.text =~ /^(@|\*|=) (\S+) :?(.+)$/
+    event.message =~ /^(@|\*|=) (\S+) :?(.+)$/
     channeltype = {'@' => 'Secret', '*' => 'Private', '=' => 'Normal'}[$1]
     report "{#{$2}} #{channeltype} channel nickname list: #{$3}"
     @nicklist = $3.split(' ')

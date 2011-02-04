@@ -24,20 +24,20 @@ class YailSessionTest < Test::Unit::TestCase
     ###
 
     @msg = Hash.new(0)
-    @yail.prepend_handler(:incoming_welcome)        { |text, args|                          @msg[:welcome] += 1; false }
-    @yail.prepend_handler(:incoming_endofmotd)      { |text, args|                          @msg[:endofmotd] += 1; false }
-    @yail.prepend_handler(:incoming_notice)         { |f, actor, target, text|              @msg[:notice] += 1; false }
-    @yail.prepend_handler(:incoming_nick)           { |f, actor, nick|                      @msg[:nick] += 1; false }
-    @yail.prepend_handler(:incoming_bannedfromchan) { |text, args|                          @msg[:bannedfromchan] += 1; false }
-    @yail.prepend_handler(:incoming_join)           { |f, actor, target|                    @msg[:join] += 1; false }
-    @yail.prepend_handler(:incoming_mode)           { |f, actor, target, modes, objects|    @msg[:mode] += 1; false }
-    @yail.prepend_handler(:incoming_msg)            { |f, actor, target, text|              @msg[:msg] += 1; false }
-    @yail.prepend_handler(:incoming_act)            { |f, actor, target, text|              @msg[:act] += 1; false }
-    @yail.prepend_handler(:incoming_ctcp)           { |f, actor, target, text|              @msg[:ctcp] += 1; false }
-    @yail.prepend_handler(:incoming_ping)           { |text|                                @msg[:ping] += 1; false }
-    @yail.prepend_handler(:incoming_quit)           { |f, actor, text|                      @msg[:quit] += 1; false }
-    @yail.prepend_handler(:outgoing_mode)           { |target, modes, objects|              @msg[:o_mode] += 1; false }
-    @yail.prepend_handler(:outgoing_join)           { |channel, pass|                       @msg[:o_join] += 1; false }
+    @yail.prepend_handler(:incoming_welcome)        { |message, args|                          @msg[:welcome] += 1; false }
+    @yail.prepend_handler(:incoming_endofmotd)      { |message, args|                          @msg[:endofmotd] += 1; false }
+    @yail.prepend_handler(:incoming_notice)         { |f, actor, target, message|              @msg[:notice] += 1; false }
+    @yail.prepend_handler(:incoming_nick)           { |f, actor, nick|                         @msg[:nick] += 1; false }
+    @yail.prepend_handler(:incoming_bannedfromchan) { |message, args|                          @msg[:bannedfromchan] += 1; false }
+    @yail.prepend_handler(:incoming_join)           { |f, actor, target|                       @msg[:join] += 1; false }
+    @yail.prepend_handler(:incoming_mode)           { |f, actor, target, modes, objects|       @msg[:mode] += 1; false }
+    @yail.prepend_handler(:incoming_msg)            { |f, actor, target, message|              @msg[:msg] += 1; false }
+    @yail.prepend_handler(:incoming_act)            { |f, actor, target, message|              @msg[:act] += 1; false }
+    @yail.prepend_handler(:incoming_ctcp)           { |f, actor, target, message|              @msg[:ctcp] += 1; false }
+    @yail.prepend_handler(:incoming_ping)           { |message|                                @msg[:ping] += 1; false }
+    @yail.prepend_handler(:incoming_quit)           { |f, actor, message|                      @msg[:quit] += 1; false }
+    @yail.prepend_handler(:outgoing_mode)           { |target, modes, objects|                 @msg[:o_mode] += 1; false }
+    @yail.prepend_handler(:outgoing_join)           { |channel, pass|                          @msg[:o_join] += 1; false }
 
     ###
     # More complex handlers to test parsing of messages
@@ -51,16 +51,16 @@ class YailSessionTest < Test::Unit::TestCase
 
     # Gotta store extra info on notices to test event parsing
     @notices = []
-    @yail.prepend_handler(:incoming_notice) do |f, actor, target, text|
-      @notices.push({:from => f, :nick => actor, :target => target, :text => text})
+    @yail.prepend_handler(:incoming_notice) do |f, actor, target, message|
+      @notices.push({:from => f, :nick => actor, :target => target, :message => message})
     end
 
-    @yail.prepend_handler(:incoming_ping) { |text|                        @ping_message = text; false }
-    @yail.prepend_handler(:incoming_quit) { |f, actor, text|              @quit = {:full => f, :nick => actor, :text => text}; false }
+    @yail.prepend_handler(:incoming_ping) { |message|                        @ping_message = message; false }
+    @yail.prepend_handler(:incoming_quit) { |f, actor, message|              @quit = {:full => f, :nick => actor, :message => message}; false }
     @yail.prepend_handler(:outgoing_join) { |channel, pass|               @out_join = {:channel => channel, :password => pass}; false }
-    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, text|     @privmsg = {:channel => channel, :nick => actor, :text => text}; false }
-    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, text|     @ctcp = {:channel => channel, :nick => actor, :text => text}; false }
-    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, text|     @act = {:channel => channel, :nick => actor, :text => text}; false }
+    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, message|     @privmsg = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, message|     @ctcp = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, message|     @act = {:channel => channel, :nick => actor, :message => message}; false }
   end
 
   # "New" handlers are set up (the 1.5+ way of doing things) here to perform tests in common with
@@ -101,18 +101,18 @@ class YailSessionTest < Test::Unit::TestCase
     @notices = []
     @yail.on_notice do |event|
       # Notices are tricky - we have to check server? and pm? to mimic legacy handler info
-      notice = {:from => event.from, :text => event.text}
+      notice = {:from => event.from, :message => event.message}
       notice[:nick] = event.server? ? "" : event.nick
       notice[:target] = event.pm? ? event.target : event.channel
       @notices.push notice
     end
 
-    @yail.heard_ping  { |event| @ping_message = event.text }
-    @yail.on_quit     { |event| @quit = {:full => event.fullname, :nick => event.nick, :text => event.text} }
+    @yail.heard_ping  { |event| @ping_message = event.message }
+    @yail.on_quit     { |event| @quit = {:full => event.fullname, :nick => event.nick, :message => event.message} }
     @yail.saying_join { |event| @out_join = {:channel => event.channel, :password => event.password} }
-    @yail.on_msg      { |event| @privmsg = {:channel => event.channel, :nick => event.nick, :text => event.text} }
-    @yail.on_ctcp     { |event| @ctcp = {:channel => event.channel, :nick => event.nick, :text => event.text} }
-    @yail.on_act      { |event| @act = {:channel => event.channel, :nick => event.nick, :text => event.text} }
+    @yail.on_msg      { |event| @privmsg = {:channel => event.channel, :nick => event.nick, :message => event.message} }
+    @yail.on_ctcp     { |event| @ctcp = {:channel => event.channel, :nick => event.nick, :message => event.message} }
+    @yail.on_act      { |event| @act = {:channel => event.channel, :nick => event.nick, :message => event.message} }
   end
 
   # Waits until the mock IRC reports it has no more output - i.e., we've read everything available
@@ -166,8 +166,8 @@ class YailSessionTest < Test::Unit::TestCase
     assert_equal ['fakeirc.org', 'fakeirc.org'], @notices.collect {|n| n[:from]}
     assert_equal ['', ''], @notices.collect {|n| n[:nick]}
     assert_equal ['AUTH', 'Bot'], @notices.collect {|n| n[:target]}
-    assert_match %r|looking up your host|i, @notices.first[:text]
-    assert_match %r|you are exempt|i, @notices.last[:text]
+    assert_match %r|looking up your host|i, @notices.first[:message]
+    assert_match %r|you are exempt|i, @notices.last[:message]
 
     # Test magic methods that set up the bot
     assert_equal "Bot", @yail.me, "Should have set @yail.me automatically on welcome handler"
@@ -201,7 +201,7 @@ class YailSessionTest < Test::Unit::TestCase
 
       assert_equal "Nerdmaster", @privmsg[:nick]
       assert_equal "#foosball", @privmsg[:channel]
-      assert_equal "#{@yail.me}: Welcome!", @privmsg[:text]
+      assert_equal "#{@yail.me}: Welcome!", @privmsg[:message]
     end
 
     # CTCP
@@ -212,7 +212,7 @@ class YailSessionTest < Test::Unit::TestCase
 
       assert_equal "Nerdmaster", @ctcp[:nick]
       assert_equal "#foosball", @ctcp[:channel]
-      assert_equal "CTCP THING", @ctcp[:text]
+      assert_equal "CTCP THING", @ctcp[:message]
     end
 
     # ACT
@@ -223,7 +223,7 @@ class YailSessionTest < Test::Unit::TestCase
 
       assert_equal "Nerdmaster", @act[:nick]
       assert_equal "#foosball", @act[:channel]
-      assert_equal "vomits on you", @act[:text]
+      assert_equal "vomits on you", @act[:message]
     end
 
     # PING
@@ -237,7 +237,7 @@ class YailSessionTest < Test::Unit::TestCase
       assert_equal 1, @msg[:quit]
       assert_equal 'Nerdmaster!nerd@nerdbucket.com', @quit[:full]
       assert_equal 'Nerdmaster', @quit[:nick]
-      assert_equal 'Quit: Bye byes', @quit[:text]
+      assert_equal 'Quit: Bye byes', @quit[:message]
     end
   end
 end

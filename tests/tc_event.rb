@@ -7,7 +7,7 @@ class MessageParserEventTest < Test::Unit::TestCase
   # Simplest test case, I think
   def test_ping
     event = Net::YAIL::IncomingEvent.parse("PING :nerdbucket.com")
-    assert_equal 'nerdbucket.com', event.text
+    assert_equal 'nerdbucket.com', event.message
     assert_equal :incoming_ping, event.type
     assert !event.respond_to?(:servername)
     assert !event.respond_to?(:nick)
@@ -20,7 +20,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     event = Net::YAIL::IncomingEvent.parse(":Dude!dude@nerdbucket.com TOPIC #nerdtalk :31 August 2010 \357\277\275 Foo.")
     assert_equal :incoming_topic_change, event.type
     assert_equal 'Dude', event.nick
-    assert_equal "31 August 2010 \357\277\275 Foo.", event.text
+    assert_equal "31 August 2010 \357\277\275 Foo.", event.message
     assert_equal '#nerdtalk', event.channel
     assert_equal 'Dude!dude@nerdbucket.com', event.fullname
   end
@@ -40,7 +40,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal :incoming_msg, event.type
     assert_equal 'Nerdminion', event.target
     assert_equal true, event.pm?
-    assert_equal 'Do my bidding!!', event.text
+    assert_equal 'Do my bidding!!', event.message
 
     # CTCP to user
     event = Net::YAIL::IncomingEvent.parse(":Nerdmaster!jeremy@nerdbucket.com PRIVMSG Nerdminion :\001FOO is to bar as BAZ is to...?\001")
@@ -49,9 +49,9 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_nil event.channel
     assert_equal 'Nerdminion', event.target
     assert_equal true, event.pm?
-    assert_equal 'FOO is to bar as BAZ is to...?', event.text
+    assert_equal 'FOO is to bar as BAZ is to...?', event.message
     assert_equal :incoming_msg, event.parent.type
-    assert_equal "\001FOO is to bar as BAZ is to...?\001", event.parent.text
+    assert_equal "\001FOO is to bar as BAZ is to...?\001", event.parent.message
     assert_nil event.parent.parent
 
     # Action to channel
@@ -60,11 +60,11 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal :incoming_act, event.type
     assert_equal '#bottest', event.channel
     assert_equal false, event.pm?
-    assert_equal 'gives Towelie a joint', event.text
+    assert_equal 'gives Towelie a joint', event.message
     assert_equal :incoming_ctcp, event.parent.type
-    assert_equal "ACTION gives Towelie a joint", event.parent.text
+    assert_equal "ACTION gives Towelie a joint", event.parent.message
     assert_equal :incoming_msg, event.parent.parent.type
-    assert_equal "\001ACTION gives Towelie a joint\001", event.parent.parent.text
+    assert_equal "\001ACTION gives Towelie a joint\001", event.parent.parent.message
     assert_nil event.parent.parent.parent
 
     # PM to channel with less common prefix
@@ -77,7 +77,7 @@ class MessageParserEventTest < Test::Unit::TestCase
   # Quick test of a numeric message I've ACTUALLY SEEN!!
   def test_numeric
     event = Net::YAIL::IncomingEvent.parse(':nerdbucket.com 266 Nerdmaster :Current global users: 22  Max: 33')
-    assert_equal 'Current global users: 22  Max: 33', event.text
+    assert_equal 'Current global users: 22  Max: 33', event.message
     assert_equal :incoming_numeric_266, event.type
     assert_equal 'nerdbucket.com', event.servername
     assert_equal 'nerdbucket.com', event.from
@@ -94,7 +94,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     # Numeric with multiple args
     event = Net::YAIL::IncomingEvent.parse(':someserver.co.uk.fn.bb 366 Towelie #bottest :End of /NAMES list.')
     assert_equal :incoming_numeric_366, event.type
-    assert_equal '#bottest End of /NAMES list.', event.text
+    assert_equal '#bottest End of /NAMES list.', event.message
     assert_equal ['#bottest', 'End of /NAMES list.'], event.parameters
 
     # First param in the message params list should still be nick
@@ -114,7 +114,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal "#CrAzY_MaNiCoMiCuM 12 [+ntr] \253'\002\0033,3 \0030 I \0030,0 \0034T \0034,4 \0031A \0031,1\0038\273\0031,9 OrA NuOvO " +
         "ErOtIcI Su FFTXL\0030,13 #CrAzY_MaNiCoMiCuM:\0032,4 QuI ReGnAnO PeR OrA I + PaZZi DeL WeB, \0031,8TuTTi AnCoRa In PRoVa..\0034M" +
         "\00307w\00308a\00303H\00311u\0031 \0031,9PrEpArAtE Le RiChIeStE PeR Il RiCoVeRo a ViTa\0030,13PoStI LiBeRi!!\0031,4!PaZZi Da " +
-        "STaRe InSiEmE. :\336", event.text
+        "STaRe InSiEmE. :\336", event.message
   end
 
   # Test an invite
@@ -137,7 +137,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     event = Net::YAIL::IncomingEvent.parse(':Nerdminion!minion@nerdbucket.com PART #nerd-talk :No, YOU GO TO HELL')
     assert_equal '#nerd-talk', event.channel
     assert_equal 'Nerdminion', event.nick
-    assert_equal 'No, YOU GO TO HELL', event.text
+    assert_equal 'No, YOU GO TO HELL', event.message
     assert_equal :incoming_part, event.type
   end
 
@@ -147,14 +147,14 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Nerdminion', event.target
     assert_equal 'Nerdmaster', event.nick
     assert_equal :incoming_kick, event.type
-    assert_equal %q|You can't quit!  You're FIRED!|, event.text
+    assert_equal %q|You can't quit!  You're FIRED!|, event.message
   end
 
   def test_quit
     event = Net::YAIL::IncomingEvent.parse(':TheTowel!ce611d7b0@nerdbucket.com QUIT :Bye bye')
     assert_equal 'TheTowel', event.nick
     assert_equal :incoming_quit, event.type
-    assert_equal 'Bye bye', event.text
+    assert_equal 'Bye bye', event.message
   end
 
   def test_nick
@@ -163,7 +163,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     event = Net::YAIL::IncomingEvent.parse(':[|\|1]!~nerdmaste@nerd.nerdbucket.com NICK :Deadnerd')
     assert_equal '[|\|1]', event.nick
     assert_equal :incoming_nick, event.type
-    assert_equal 'Deadnerd', event.text
+    assert_equal 'Deadnerd', event.message
   end
 
   # Test some notice stuff
@@ -176,7 +176,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Nerdminion', event.target
     assert !event.respond_to?(:nick)
     assert !event.respond_to?(:fullname)
-    assert_equal 'You suck.  A lot.', event.text
+    assert_equal 'You suck.  A lot.', event.message
 
     # This CTCP message...
     #     ":Nerdmaster!jeremy@nerdbucket.com PRIVMSG Nerdminion \001USERINFO\001"
@@ -188,7 +188,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal 'Nerdminion', event.nick
     assert_equal 'Nerdminion!minion@nerdbucket.com', event.fullname
     assert_equal 'Nerdminion', event.from
-    assert_equal 'USERINFO :Minion of the nerd', event.text
+    assert_equal 'USERINFO :Minion of the nerd', event.message
 
     # Channel-wide notice
     event = Net::YAIL::IncomingEvent.parse(":Nerdmaster!jeremy@nerdbucket.com NOTICE #channel-ten-news :Tonight's late-breaking story...")
@@ -198,7 +198,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal '#channel-ten-news', event.channel
     assert_nil event.target
     assert_equal 'Nerdmaster!jeremy@nerdbucket.com', event.fullname
-    assert_equal %q|Tonight's late-breaking story...|, event.text
+    assert_equal %q|Tonight's late-breaking story...|, event.message
   end
 
   def test_modes
@@ -208,7 +208,7 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal :incoming_mode, event.type
     assert_equal '#bots', event.channel
     assert_equal ['Towelie', 'Doogles!*@*'], event.targets
-    assert_equal '+ob', event.text
+    assert_equal '+ob', event.message
 
     # Newly-created channels do this
     event = Net::YAIL::IncomingEvent.parse(':nerdbucket.com MODE #bots +nt')
@@ -222,14 +222,14 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal :incoming_mode, event.type
     assert_equal '#bots', event.channel
     assert_equal ['Doogles!*@*', 'Towelie', 'Nerdmaster'], event.targets
-    assert_equal '-bivv', event.text
+    assert_equal '-bivv', event.message
 
     event = Net::YAIL::IncomingEvent.parse(":Nerdmaster!jeremy@nerdbucket.com MODE #bots +m")
     assert_equal 'Nerdmaster', event.nick
     assert_equal :incoming_mode, event.type
     assert_equal '#bots', event.channel
     assert_equal [], event.targets
-    assert_equal '+m', event.text
+    assert_equal '+m', event.message
 
     # TODO: This is even worse than above - this is a pretty specific message (setting channel key
     # to 'foo'), but has to be parsed in a pretty absurd way to get that info.
@@ -238,13 +238,13 @@ class MessageParserEventTest < Test::Unit::TestCase
     assert_equal :incoming_mode, event.type
     assert_equal '#bots', event.channel
     assert_equal ['foo'], event.targets
-    assert_equal '+k', event.text
+    assert_equal '+k', event.message
   end
 
   # Simple test of error event
   def test_error
     event = Net::YAIL::IncomingEvent.parse 'ERROR :Closing Link: nerdbucket.com (Quit: Terminated by user)'
     assert_equal :incoming_error, event.type
-    assert_equal 'Closing Link: nerdbucket.com (Quit: Terminated by user)', event.text
+    assert_equal 'Closing Link: nerdbucket.com (Quit: Terminated by user)', event.message
   end
 end

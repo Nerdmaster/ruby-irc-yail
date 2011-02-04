@@ -64,7 +64,7 @@ class YAIL
   # * from: Nickname *or* server name, should be on every event
   # * channel: Where applicable, the name of the channel in which the event
   #   happened.
-  # * text: Actual message/emote/notice/etc
+  # * message: Actual message/emote/notice/etc
   # * target: User targeted for various commands - PRIVMSG/NOTICE recipient, KICK victim, etc
   # * pm?: Set to true if the event is a "private" event (not sent to the
   #   channel).  Useful primarily for message types of events (PRIVMSG).
@@ -122,29 +122,29 @@ class YAIL
       case msg.command
         when 'ERROR'
           data[:type] = :error
-          data[:text] = msg.params.last
+          data[:message] = msg.params.last
           event = new(data)
 
         when 'PING'
           data[:type] = :ping
-          data[:text] = msg.params.last
+          data[:message] = msg.params.last
           event = new(data)
 
         when 'TOPIC'
           data[:type] = :topic_change
           data[:channel] = msg.params.first
-          data[:text] = msg.params.last
+          data[:message] = msg.params.last
           event = new(data)
 
         when /^\d{3}$/
           # Get base event for the "numeric" type - so many of these exist, and so few are likely
-          # to be handled directly.  Sadly, some hackery has to happen here to make "text" backward-
+          # to be handled directly.  Sadly, some hackery has to happen here to make "message" backward-
           # compatible since old YAIL auto-joined all parameters into one string.
           data[:type] = :numeric
           params = msg.params.dup
           data[:target] = params.shift
           data[:parameters] = params
-          data[:text] = params.join(' ')
+          data[:message] = params.join(' ')
           data[:numeric] = msg.command.to_i
           event = new(data)
 
@@ -181,24 +181,24 @@ class YAIL
         when 'PART'
           data[:type] = :part
           data[:channel] = msg.params.first
-          data[:text] = msg.params.last
+          data[:message] = msg.params.last
           event = new(data)
 
         when 'KICK'
           data[:type] = :kick
           data[:channel] = msg.params[0]
           data[:target] = msg.params[1]
-          data[:text] = msg.params[2]
+          data[:message] = msg.params[2]
           event = new(data)
 
         when 'QUIT'
           data[:type] = :quit
-          data[:text] = msg.params.first
+          data[:message] = msg.params.first
           event = new(data)
 
         when 'NICK'
           data[:type] = :nick
-          data[:text] = msg.params.first
+          data[:message] = msg.params.first
           event = new(data)
   
         # Unknown line!  If this library is complete, we should *never* see this situation occur,
@@ -218,7 +218,7 @@ class YAIL
     def self.mode_events(msg, data)
       data[:type]     = :mode
       data[:channel]  = msg.params.shift
-      data[:text]     = msg.params.shift
+      data[:message]  = msg.params.shift
       data[:targets]  = msg.params
       event = new(data)
     end
@@ -247,22 +247,22 @@ class YAIL
 
       # Get base event
       data[:type] = :msg
-      data[:text] = msg.params.last
+      data[:message] = msg.params.last
       event = new(data)
 
       # Is this CTCP?
-      if event.text =~ /^\001(.+?)\001$/
+      if event.message =~ /^\001(.+?)\001$/
         data[:type] = :ctcp
-        data[:text] = $1
+        data[:message] = $1
         data[:parent] = event
         
         event = new(data)
       end
 
       # CTCP action?
-      if :ctcp == data[:type] && event.text =~ /^ACTION (.+)$/
+      if :ctcp == data[:type] && event.message =~ /^ACTION (.+)$/
         data[:type] = :act
-        data[:text] = $1
+        data[:message] = $1
         data[:parent] = event
 
         event = new(data)
@@ -278,12 +278,12 @@ class YAIL
 
       # Get base event
       data[:type] = :notice
-      data[:text] = msg.params.last
+      data[:message] = msg.params.last
       event = new(data)
 
-      if event.text =~ /^\001(.+?)\001$/
+      if event.message =~ /^\001(.+?)\001$/
         data[:type] = :ctcp_reply
-        data[:text] = $1
+        data[:message] = $1
         data[:parent] = event
 
         event = new(data)

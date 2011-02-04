@@ -62,16 +62,16 @@ module LegacyEvents
 
   # Since numerics are so many and so varied, this method will auto-fallback
   # to a simple report if no handler was defined.
-  def handle_numeric(number, fullactor, actor, target, text)
+  def handle_numeric(number, fullactor, actor, target, message)
     # All numerics share the same args, and rarely care about anything but
-    # text, so let's make it easier by passing a hash instead of a list
+    # message, so let's make it easier by passing a hash instead of a list
     args = {:fullactor => fullactor, :actor => actor, :target => target}
     base_event = :"incoming_numeric_#{number}"
     if Array === @legacy_handlers[base_event]
-      return handle(base_event, text, args)
+      return handle(base_event, message, args)
     else
       # No handler = report and don't worry about it
-      @log.info "Unknown raw #{number.to_s} from #{fullactor}: #{text}"
+      @log.info "Unknown raw #{number.to_s} from #{fullactor}: #{message}"
       return false
     end
   end
@@ -97,11 +97,11 @@ module LegacyEvents
     case event.type
       # Ping is important to handle quickly, so it comes first.
       when :incoming_ping
-        return handle(event.type, event.text)
+        return handle(event.type, event.message)
 
       when :incoming_numeric
         # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
-        handle_numeric(event.numeric, event.servername, nil, event.target, event.text)
+        handle_numeric(event.numeric, event.servername, nil, event.target, event.message)
 
       when :incoming_invite
         return handle(event.type, event.fullname, event.nick, event.channel)
@@ -114,40 +114,40 @@ module LegacyEvents
 
         # Notices come from server sometimes, so... another merger for legacy fun!
         nick = event.server? ? '' : event.nick
-        return handle(event.type, event.from, nick, target, event.text)
+        return handle(event.type, event.from, nick, target, event.message)
 
       # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
       # but let's not put hacks into the core Event object.  Modes need reworking soon anyway.
       #
-      # NOTE: text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
+      # NOTE: message is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
       when :incoming_mode
         # Modes can come from the server, so legacy system again regularly sent nil data....
         nick = event.server? ? '' : event.nick
-        return handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
+        return handle(event.type, event.from, nick, event.channel, event.message, event.targets.join(' '))
 
       when :incoming_topic_change
-        return handle(event.type, event.fullname, event.nick, event.channel, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.message)
 
       when :incoming_join
         return handle(event.type, event.fullname, event.nick, event.channel)
 
       when :incoming_part
-        return handle(event.type, event.fullname, event.nick, event.channel, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.message)
 
       when :incoming_kick
-        return handle(event.type, event.fullname, event.nick, event.channel, event.target, event.text)
+        return handle(event.type, event.fullname, event.nick, event.channel, event.target, event.message)
 
       when :incoming_quit
-        return handle(event.type, event.fullname, event.nick, event.text)
+        return handle(event.type, event.fullname, event.nick, event.message)
 
       when :incoming_nick
-        return handle(event.type, event.fullname, event.nick, event.text)
+        return handle(event.type, event.fullname, event.nick, event.message)
 
       when :incoming_error
-        return handle(event.type, event.text)
+        return handle(event.type, event.message)
 
       when :outgoing_privmsg, :outgoing_msg, :outgoing_ctcp, :outgoing_act, :outgoing_notice, :outgoing_ctcpreply
-        return handle(event.type, event.target, event.text)
+        return handle(event.type, event.target, event.message)
 
       when :outgoing_mode
         return handle(event.type, event.target, event.modes, event.objects)
@@ -156,13 +156,13 @@ module LegacyEvents
         return handle(event.type, event.channel, event.password)
 
       when :outgoing_part
-        return handle(event.type, event.channel, event.text)
+        return handle(event.type, event.channel, event.message)
 
       when :outgoing_quit
-        return handle(event.type, event.text)
+        return handle(event.type, event.message)
 
       when :outgoing_nick
-        return handle(event.type, event.nickname)
+        return handle(event.type, event.nick)
 
       when :outgoing_user
         return handle(event.type, event.username, event.hostname, event.servername, event.realname)

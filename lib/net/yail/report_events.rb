@@ -35,28 +35,28 @@ module Reports
 
   private
   def r_msg(event)
-    report "{%s} <%s> %s" % [event.target || event.channel, event.nick, event.text]
+    report "{%s} <%s> %s" % [event.target || event.channel, event.nick, event.message]
   end
 
   def r_act(event)
-    report "{%s} * %s %s" % [event.target || event.channel, event.nick, event.text]
+    report "{%s} * %s %s" % [event.target || event.channel, event.nick, event.message]
   end
 
   def r_notice(event)
     nick = event.server? ? '' : event.nick
-    report "{%s} -%s- %s" % [event.target || event.channel, nick, event.text]
+    report "{%s} -%s- %s" % [event.target || event.channel, nick, event.message]
   end
 
   def r_ctcp(event)
-    report "{%s} [%s %s]" % [event.target || event.channel, event.nick, event.text]
+    report "{%s} [%s %s]" % [event.target || event.channel, event.nick, event.message]
   end
 
   def r_ctcpreply(event)
-    report "{%s} [Reply: %s %s]" % [event.target || event.channel, event.nick, event.text]
+    report "{%s} [Reply: %s %s]" % [event.target || event.channel, event.nick, event.message]
   end
 
   def r_mode(event)
-    report "{%s} %s sets mode %s %s" % [event.channel, event.from, event.text, event.targets.join(' ')]
+    report "{%s} %s sets mode %s %s" % [event.channel, event.from, event.message, event.targets.join(' ')]
   end
 
   def r_join(event)
@@ -64,15 +64,15 @@ module Reports
   end
 
   def r_part(event)
-    report "{#{event.channel}} #{event.nick} parts (#{event.text})"
+    report "{#{event.channel}} #{event.nick} parts (#{event.message})"
   end
 
   def r_kick(event)
-    report "{#{event.channel}} #{event.nick} kicked #{event.target} (#{event.text})"
+    report "{#{event.channel}} #{event.nick} kicked #{event.target} (#{event.message})"
   end
 
   def r_quit(event)
-    report "#{event.nick} quit (#{event.text})"
+    report "#{event.nick} quit (#{event.message})"
   end
 
   # Incoming invitation
@@ -83,16 +83,16 @@ module Reports
   # Reports nick change unless nickname is us - we check nickname here since
   # the magic method changes @yail.me to the new nickname.
   def r_nick(event)
-    report "#{event.nick} changed nick to #{event.text}" unless event.nick == @yail.me
+    report "#{event.nick} changed nick to #{event.message}" unless event.nick == @yail.me
   end
 
   def r_bannedfromchan(event)
-    event.text =~ /^(\S*) :Cannot join channel/
+    event.message =~ /^(\S*) :Cannot join channel/
     report "Banned from channel #{$1}"
   end
 
   def r_badchannelkey(event)
-    event.text =~ /^(\S*) :Cannot join channel/
+    event.message =~ /^(\S*) :Cannot join channel/
     report "Bad channel key (password) for #{$1}"
   end
 
@@ -102,37 +102,37 @@ module Reports
 
   # Channel URL
   def r_channelurl(event)
-    event.text =~ /^(\S+) :?(.+)$/
+    event.message =~ /^(\S+) :?(.+)$/
     report "{#{$1}} URL is #{$2}"
   end
 
   # Channel topic
   def r_topic(event)
-    event.text =~ /^(\S+) :?(.+)$/
+    event.message =~ /^(\S+) :?(.+)$/
     report "{#{$1}} Topic is: #{$2}"
   end
 
   # Channel topic setter
   def r_topicinfo(event)
-    event.text =~ /^(\S+) (\S+) (\d+)$/
+    event.message =~ /^(\S+) (\S+) (\d+)$/
     report "{#{$1}} Topic set by #{$2} on #{Time.at($3.to_i).asctime}"
   end
 
   # End of names
   def r_endofnames(event)
-    event.text =~ /^(\S+)/
+    event.message =~ /^(\S+)/
     report "{#{$1}} Nickname list complete"
   end
 
   # MOTD line
   def r_motd(event)
-    event.text =~ /^:?(.+)$/
+    event.message =~ /^:?(.+)$/
     report "*MOTD* #{$1}"
   end
 
   # Beginning of MOTD
   def r_motdstart(event)
-    event.text =~ /^:?(.+)$/
+    event.message =~ /^:?(.+)$/
     report "*MOTD* #{$1}"
   end
 
@@ -143,25 +143,25 @@ module Reports
 
   # Sent a privmsg (non-ctcp)
   def r_out_msg(event)
-    report "{#{event.target}} <#{@yail.me}> #{event.text}"
+    report "{#{event.target}} <#{@yail.me}> #{event.message}"
   end
 
   # Sent a ctcp
   def r_out_ctcp(event)
-    report "{#{event.target}} [#{@yail.me} #{event.text}]"
+    report "{#{event.target}} [#{@yail.me} #{event.message}]"
   end
 
   # Sent ctcp action
   def r_out_act(event)
-    report "{#{event.target}} <#{@yail.me}> #{event.text}"
+    report "{#{event.target}} <#{@yail.me}> #{event.message}"
   end
 
   def r_out_notice(event)
-    report "{#{event.target}} -#{@yail.me}- #{event.text}"
+    report "{#{event.target}} -#{@yail.me}- #{event.message}"
   end
 
   def r_out_ctcpreply(event)
-    report "{#{event.target}} [Reply: #{@yail.me} #{event.text}]"
+    report "{#{event.target}} [Reply: #{@yail.me} #{event.message}]"
   end
 
   def r_out_generic(event)

@@ -23,20 +23,20 @@ module IRCOutputAPI
   end
 
   # Buffers an :outgoing_msg event.  Could be used to send any privmsg, but you're betting off
-  # using act and ctcp shortcut methods for those types.  Target is a channel or username, text
+  # using act and ctcp shortcut methods for those types.  Target is a channel or username, message
   # is the message.
-  def msg(target, text)
-    buffer_output Net::YAIL::OutgoingEvent.new(:type => :msg, :target => target, :text => text)
+  def msg(target, message)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :msg, :target => target, :message => message)
   end
 
-  # Buffers an :outgoing_ctcp event.  Target is user or channel, text is message.
-  def ctcp(target, text)
-    buffer_output Net::YAIL::OutgoingEvent.new(:type => :ctcp, :target => target, :text => text)
+  # Buffers an :outgoing_ctcp event.  Target is user or channel, message is message.
+  def ctcp(target, message)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :ctcp, :target => target, :message => message)
   end
 
-  # Buffers an :outgoing_act event.  Target is user or channel, text is message.
-  def act(target, text)
-    buffer_output Net::YAIL::OutgoingEvent.new(:type => :act, :target => target, :text => text)
+  # Buffers an :outgoing_act event.  Target is user or channel, message is message.
+  def act(target, message)
+    buffer_output Net::YAIL::OutgoingEvent.new(:type => :act, :target => target, :message => message)
   end
 
   # Creates an output command and its handler.  output_base is a template of the command without
