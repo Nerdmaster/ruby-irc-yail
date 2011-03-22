@@ -348,9 +348,18 @@ class YAIL
   # forever for incoming data, and calling filters/callback due to this listening
   def io_loop
     loop do
-      # if no data is coming in, don't block the socket!  To allow for mocked IO objects, allow
-      # a non-IO to let us know if it's ready
-      ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : @socket.ready?
+      # Possible fix for SSL one-message-behind issue from BP - thanks!
+      #
+      # If SSL, we just assume we're ready so we're always grabbing the latest message(s) from the
+      # socket.  I don't know if this will have any side-effects, but it seems to work in at least
+      # one situation, sooo....
+      ready = true if @ssl
+      unless ready
+        # if no data is coming in, don't block the socket!  To allow for mocked IO objects, allow
+        # a non-IO to let us know if it's ready
+        ready = @socket.kind_of?(IO) ? Kernel.select([@socket], nil, nil, 0) : @socket.ready?
+      end
+
       read_incoming_data if ready
 
       # Check for dead socket
