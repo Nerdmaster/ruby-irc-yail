@@ -1,3 +1,9 @@
+1.4.4
+=====
+
+SSL support has been enhanced by code I don't fully understand, but which a helpful user suggested
+could fix the one-message-behind situation!
+
 1.4.3
 =====
 
