@@ -9,7 +9,7 @@ module IRCOutputAPI
   # method.  Don't use puts manually.  I will kill violaters.  Legally
   # speaking, that is.
   def raw(line)
-    @socket.puts line
+    @socket.puts "#{line}\r\n"
   end
 
   # Buffers the given event to be sent out when we are able to send something out to the given
