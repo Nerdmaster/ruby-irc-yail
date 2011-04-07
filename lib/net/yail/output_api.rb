@@ -31,7 +31,7 @@ module IRCOutputAPI
   # method.  Don't use puts manually.  I will kill violaters.  Legally
   # speaking, that is.
   def raw(line, report = true)
-    @socket.send "#{line}\r\n", 0
+    @socket.puts "#{line}\r\n"
     report "bot: #{line.inspect}" if report
   end
 
