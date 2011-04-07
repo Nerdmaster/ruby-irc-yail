@@ -1,3 +1,8 @@
+1.4.5
+=====
+
+Pulled fix for RFC 1459 compliance - newline should be CR-LF.
+
 1.4.4
 =====
 
