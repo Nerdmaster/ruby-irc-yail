@@ -68,13 +68,6 @@ class YAIL
       @raw = @data.delete(:raw)
       @msg = @data.delete(:msg)
       @type = @data.delete(:type)
-
-      # Give useful accessors in a hacky but fun way!  I can't decide if I prefer the pain of
-      # using method_missing or the pain of not knowing how to do this without a string eval....
-      for key in @data.keys
-        key = key.to_s
-        self.instance_eval("def #{key}; return @data[:#{key}]; end")
-      end
     end
 
     # Helps us debug
@@ -197,6 +190,12 @@ class YAIL
       end
 
       return event
+    end
+
+    # Prefer method_missing to using instance_eval due to the fact that some of
+    # the callbacks rely on certain attributes being declared.
+    def method_missing(*args,&block)
+      @data[args[0].to_sym]
     end
 
     protected
