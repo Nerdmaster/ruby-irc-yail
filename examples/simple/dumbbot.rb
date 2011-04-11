@@ -1,4 +1,8 @@
 require 'rubygems'
+
+# Want a specific version of net/yail?  Try uncommenting this:
+# gem 'net-yail', '1.x.y'
+
 require 'net/yail'
 require 'getopt/long'
 
@@ -13,13 +17,14 @@ irc = Net::YAIL.new(
   :address    => opt['network'],
   :username   => 'Frakking Bot',
   :realname   => 'John Botfrakker',
-  :nicknames  => [opt['nick']],
-  :loud       => opt['loud']
+  :nicknames  => [opt['nick']]
 )
 
+irc.log.level = Logger::DEBUG if opt['loud']
+
 # Register handlers
-irc.prepend_handler(:incoming_welcome) {|text, args| irc.join('#bots') }
-irc.prepend_handler(:incoming_invite) {|full, user, channel| irc.join(channel) }
+irc.heard_welcome { |e| irc.join('#bots') }       # Filter - runs after the server's welcome message is read
+irc.on_invite     { |e| irc.join(e.channel) }     # Handler - runs on an invite message
 
 # Start the bot and enjoy the endless loop
 irc.start_listening!
