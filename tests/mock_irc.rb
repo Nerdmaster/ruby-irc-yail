@@ -102,7 +102,8 @@ class MockIRC
     @nick = nick
 
     unless @logged_in
-      add_output ":#{SERVER} NOTICE #{@nick} :*** You are exempt from user limits. congrats.",
+      add_output "NOTICE AUTH :*** Looking up your hostname",
+                 ":#{SERVER} NOTICE #{@nick} :*** You are exempt from user limits. congrats.",
                  ":#{SERVER} 001 #{@nick} :Welcome to the Fakey-fake Internet Relay Chat Network #{@nick}",
                  ":#{SERVER} 002 #{@nick} :Your host is #{SERVER}[0.0.0.0/6667], running version mock-irc-1.7.7",
                  ":#{SERVER} 003 #{@nick} :This server was created Nov 21 2009 at 21:20:48",
