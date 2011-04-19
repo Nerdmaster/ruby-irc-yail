@@ -192,10 +192,23 @@ class YAIL
       return event
     end
 
-    # Prefer method_missing to using instance_eval due to the fact that some of
-    # the callbacks rely on certain attributes being declared.
+    # This method will ensure that each of the given keys have values assigned to them
+    # so that a value missing from the server won't cause a NoMethodError.
+    def ensure_values_for(keys)
+      keys.each do |key|
+        @data[key.to_sym]||=nil
+      end
+    end
+
+    # Define the method missing so that any keys that have been defined in the data
+    # array are accessible through methods of the same name.  This method will throw
+    # a NoMethodError if the key is not defined in the array.
     def method_missing(*args,&block)
-      @data[args[0].to_sym]
+      if @data.has_key?(args[0].to_sym)
+        @data[args[0].to_sym]
+      else
+        super(args,block)
+      end
     end
 
     protected

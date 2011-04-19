@@ -598,23 +598,31 @@ class YAIL
     case event.type
       # Ping is important to handle quickly, so it comes first.
       when :incoming_ping
+        event.ensure_values_for [:type, :text]
         handle(event.type, event.text)
 
       when :incoming_numeric
+        event.ensure_values_for [:numeric, :servername, :target, :text]
+	
         # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
         handle_numeric(event.numeric, event.servername, nil, event.target, event.text)
 
       when :incoming_invite
+        event.ensure_values_for [:type, :fullname, :nick, :channel]
         handle(event.type, event.fullname, event.nick, event.channel)
 
       # Fortunately, the legacy handler for all five "message" types is the same!
       when :incoming_msg, :incoming_ctcp, :incoming_act, :incoming_notice, :incoming_ctcpreply
+        # Ensure that all the required attributes are declared
+        event.ensure_values_for [:type, :from, :text]
+
         # Legacy handling requires merger of target and channel....
         target = event.target if event.pm?
         target = event.channel if !target
 
         # Notices come from server sometimes, so... another merger for legacy fun!
         nick = event.server? ? '' : event.nick
+
         handle(event.type, event.from, nick, target, event.text)
 
       # This is a bit painful for right now - just use some hacks to make it work semi-nicely,
@@ -622,29 +630,37 @@ class YAIL
       #
       # NOTE: text is currently the mode settings ('+b', for instance) - very bad.  TODO: FIX FIX FIX!
       when :incoming_mode
+        event.ensure_values_for [:type, :from, :channel, :text, :targets]
         # Modes can come from the server, so legacy system again regularly sent nil data....
         nick = event.server? ? '' : event.nick
         handle(event.type, event.from, nick, event.channel, event.text, event.targets.join(' '))
 
       when :incoming_topic_change
+        event.ensure_values_for [:type, :fullname, :nick, :channel, :text]
         handle(event.type, event.fullname, event.nick, event.channel, event.text)
 
       when :incoming_join
+        event.ensure_values_for [:type, :fullname, :nick, :channel]
         handle(event.type, event.fullname, event.nick, event.channel)
 
       when :incoming_part
+        event.ensure_values_for [:type, :fullname, :nick, :channel, :text]
         handle(event.type, event.fullname, event.nick, event.channel, event.text)
 
       when :incoming_kick
+        event.ensure_values_for [:type, :fullname, :nick, :channel, :target, :text]
         handle(event.type, event.fullname, event.nick, event.channel, event.target, event.text)
 
       when :incoming_quit
+        event.ensure_values_for [:type, :fullname, :nick, :text]
         handle(event.type, event.fullname, event.nick, event.text)
 
       when :incoming_nick
+        event.ensure_values_for [:type, :fullname, :nick, :text]
         handle(event.type, event.fullname, event.nick, event.text)
 
       when :incoming_error
+        event.ensure_values_for [:type, :text]
         handle(event.type, event.text)
 
       # Unknown line!
