@@ -1,3 +1,10 @@
+1.4.6
+=====
+
+The from data is always present on all events, even if it has to be blank, in order to accommodate
+the edge cases where having data is expected, but it isn't there:
+    NOTICE :ERROR from foo.bar.com
+
 1.4.5
 =====
 
