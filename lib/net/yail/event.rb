@@ -104,7 +104,15 @@ class YAIL
       # Parse with MessageParser to get raw IRC info
       raw = line.dup
       msg = Net::YAIL::MessageParser.new(line)
-      data = { :raw => raw, :msg => msg }
+
+      # All incoming events need .raw and .msg in addition to any base event attributes.
+      #
+      # "from" is a tricky case as it isn't used on all messages - but because it's something of
+      # a standard we rely on for so many messages, it has a default so that at the least one can
+      # rely on not getting a crash for some of the edge cases (like "NOTICE :ERROR from foo.bar.com"
+      # or a server-less "NOTICE AUTH :xxxx").  Maybe more elements should have defaults... not
+      # real sure yet.
+      data = { :raw => raw, :msg => msg, :from => nil }
 
       # Not all messages from the server identify themselves as such, so we just assume it's from
       # the server unless we explicitly see a nick

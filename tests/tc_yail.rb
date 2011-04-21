@@ -160,13 +160,14 @@ class YailSessionTest < Test::Unit::TestCase
     wait_for_irc
     assert_equal 1, @msg[:welcome]
     assert_equal 1, @msg[:endofmotd]
-    assert_equal 2, @msg[:notice]
+    assert_equal 3, @msg[:notice]
 
     # Intense notice test - make sure all events were properly translated
-    assert_equal ['fakeirc.org', 'fakeirc.org'], @notices.collect {|n| n[:from]}
-    assert_equal ['', ''], @notices.collect {|n| n[:nick]}
-    assert_equal ['AUTH', 'Bot'], @notices.collect {|n| n[:target]}
+    assert_equal ['fakeirc.org', nil, 'fakeirc.org'], @notices.collect {|n| n[:from]}
+    assert_equal ['', '', ''], @notices.collect {|n| n[:nick]}
+    assert_equal ['AUTH', 'AUTH', 'Bot'], @notices.collect {|n| n[:target]}
     assert_match %r|looking up your host|i, @notices.first[:message]
+    assert_match %r|looking up your host|i, @notices[1][:message]
     assert_match %r|you are exempt|i, @notices.last[:message]
 
     # Test magic methods that set up the bot
