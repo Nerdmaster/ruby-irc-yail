@@ -22,7 +22,8 @@ Example Usage
 
 For the nitty-gritty, you can see all this stuff in the [Net::YAIL docs](http://ruby-irc-yail.nerdbucket.com/)
 page, as well as more complete documentation about the system.  For a complete bot,
-check out the IRCBot source code.  Below is just a very simple example:
+check out the IRCBot source code as well as the various examples found in the github
+project or in the gem's examples directory.  Below is just a very simple example:
 
     require 'rubygems'
     require 'net/yail'

@@ -137,27 +137,12 @@ module Net
 #   user provided a quit message.
 # * <tt>:incoming_nick</tt>: A user changed nicknames.  <tt>event.message</tt> will contain the new
 #   nickname.
-#
-#
-#
-#
 # * <tt>:incoming_mode</tt>: A user or server can initiate this, and this is the most screwy event
-#   in YAIL.  Signifies change of one or more modes on a channel, user, or both.
-#   <tt>event.target</tt> tells you the channel or user targeted (usually channel: a typical op or
-#   ban command runs in the context of a channel).  <tt>event.targets</tt> 
-#   message occurred.  <tt>event.targets</tt> will contain an array of users affected, and
-#   <tt>event.message</tt> will contain the modes.  This is tricky to parse and admittedly needs some
-#   serious work.  A user could send "MODE #bots -bivv Doogles!*@* Towelie Nerdmaster" to signify
-#   a -i mode on the channel, -b on Doogles!*@*, -v on Towelie, and -v on Nerdmaster.  The array of
-#   targets will match all non-channel modes in order, but you have to know which modes are
-#   channel-specific in order to figure out which modes go where, and I just have not yet spent
-#   the time making this smarter.  Send a patch if you don't like it :)
-#
-#
-#
-#
-#
-#
+#   in YAIL.  This needs an overhaul and will hopefully change by 2.0, but for now I take the raw
+#   mode strings, such as "+bivv" and put them in <tt>event.message</tt>.  All arguments of the
+#   mode strings get stored as individual records in the <tt>event.targets</tt> array.  For modes
+#   like "+ob", the first entry in targets will be the user given ops, and the second will be the
+#   ban string.  I hope to overhaul this prior to 2.0, so if you rely on mode parsing, be warned.
 # * <tt>:incoming_msg</tt>: A "standard" PRIVMSG event (i.e., not CTCP).  <tt>event.message</tt> will
 #   contain the message, obviously.  If the message is to a channel, <tt>event.channel</tt>
 #   will contain the channel name, <tt>event.target</tt> will be nil, and <tt>event.pm?</tt> will
