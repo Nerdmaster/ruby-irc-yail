@@ -1,5 +1,5 @@
 module Net
   class YAIL
-    VERSION = '1.5.0rc4'
+    VERSION = '1.5.1'
   end
 end
