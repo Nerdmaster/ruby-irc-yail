@@ -17,7 +17,7 @@ gathering, text filtering, etc.
 |.strip
 
   s.summary           = "Yet Another IRC Library: wrapper for IRC communications in Ruby."
-  s.files             = FileList[ 'examples/simple/*', 'examples/logger/*', 'lib/net/*.rb', 'lib/net/yail/*', 'test/*.rb' ].to_a
+  s.files             = FileList[ 'examples/simple/*', 'examples/logger/*', 'examples/loudbot/*.rb', 'lib/net/*.rb', 'lib/net/yail/*', 'test/*.rb' ].to_a
   s.homepage          = 'http://ruby-irc-yail.nerdbucket.com/'
   s.rubyforge_project = 'net-yail'
   s.require_path      = "lib"
