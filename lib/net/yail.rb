@@ -26,6 +26,10 @@ module Net
 # This library is based on the initial release of IRCSocket with a tiny bit
 # of plagarism of Ruby-IRC.
 #
+# Need an example?  For a separate project you can play with that relies on Net::YAIL, check out
+# https://github.com/Nerdmaster/superloud.  This is based on the code in the examples directory,
+# but is easier to clone, run, and tinker with because it's a separate github project.
+#
 # My aim here is to build something that is still fairly simple to use, but
 # powerful enough to build a decent IRC program.
 #
