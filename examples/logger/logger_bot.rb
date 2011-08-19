@@ -42,29 +42,28 @@ class LoggerBot < IRCBot
   # Add hooks on startup (base class's start method calls add_custom_handlers)
   def add_custom_handlers
     # Set up hooks
-    @irc.on_msg     self.method(:_in_msg)
-    @irc.on_act     self.method(:_in_act)
-    @irc.on_invite  self.method(:_in_invited)
-    @irc.on_kick    self.method(:_in_kick)
-
-    @irc.prepend_handler(:outgoing_join,            self.method(:_out_join))
+    @irc.on_msg       self.method(:_in_msg)
+    @irc.on_act       self.method(:_in_act)
+    @irc.on_invite    self.method(:_in_invited)
+    @irc.on_kick      self.method(:_in_kick)
+    @irc.saying_join  self.method(:_out_join)
   end
 
   private
   # Incoming message handler
-  def _in_msg(fullactor, user, channel, text)
+  def _in_msg(event)
     # check if this is a /msg command, or normal channel talk
-    if channel =~ /#{bot_name}/
-      incoming_private_message(user, text)
+    if event.pm?
+      incoming_private_message(event.nick, event.message)
     else
-      incoming_channel_message(user, channel, text)
+      incoming_channel_message(event.nick, event.channel, event.message)
     end
   end
 
-  def _in_act(fullactor, user, channel, text)
+  def _in_act(event)
     # check if this is a /msg command, or normal channel talk
-    return if (channel =~ /#{bot_name}/)
-    log_channel_message(user, channel, "#{user} #{text}")
+    return if event.pm?
+    log_channel_message(event.nick, event.channel, "#{event.nick} #{event.message}")
   end
 
   # TODO: recalls the most recent logs for a given channel by reading from
@@ -136,23 +135,23 @@ class LoggerBot < IRCBot
 
   # Invited to a channel for logging purposes - simply auto-join for now.
   # Maybe allow only @master one day, or array of authorized users.
-  def _in_invited(fullactor, actor, target)
-    join target
+  def _in_invited(event)
+    join event.channel
   end
 
   # If bot is kicked, he must rejoin!
-  def _in_kick(fullactor, actor, target, object, text)
-    if object == bot_name
+  def _in_kick(event)
+    if event.target == bot_name
       # Rejoin almost immediately - logging is important.
-      join target
+      join event.channel
     end
 
     return true
   end
 
   # We're trying to join a channel - use key if we have one
-  def _out_join(target, pass)
-    key = @passwords[target]
-    pass.replace(key) unless key.to_s.empty?
+  def _out_join(event)
+    key = @passwords[event.channel]
+    event.password.replace(key) unless key.to_s.empty?
   end
 end
