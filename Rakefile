@@ -1,4 +1,4 @@
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rake/testtask'
 require 'lib/net/yail/yail-version'
 spec = Gem::Specification.new do |s|
@@ -23,10 +23,10 @@ gathering, text filtering, etc.
   s.require_path      = "lib"
   s.test_files        = Dir.glob('tests/*.rb')
   s.has_rdoc          = true
-  s.rdoc_options      = ['--main', 'Net::YAIL']
+  s.rdoc_options      = ['-m', 'Net::YAIL', '-f', 'sdoc']
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
   pkg.need_tar = true
 end
 
