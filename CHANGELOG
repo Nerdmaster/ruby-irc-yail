@@ -31,6 +31,7 @@ callback.
 ----------
 
 Though I got it working fairly well, the legacy support isn't 100% compatible with 1.4.3:
+
 * Reporting is now a separate module you have to include manually (or subclass IRCBot)
 * Outgoing events have been modified heavily.  They are now callbacks instead of "core"
   functionality, and may run differently than expected.  For instance, you used to be unable to
