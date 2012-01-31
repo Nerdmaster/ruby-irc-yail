@@ -20,9 +20,9 @@ I started my project.
 Example Usage
 ======
 
-Need an example?  For a separate project you can play with that relies on Net::YAIL, check out
-https://github.com/Nerdmaster/superloud.  This is based on the code in the examples directory,
-but is easier to clone, run, and tinker with because it's a separate github project.
+Need a slightly more complex example?  For a separate project you can play
+with that relies on Net::YAIL, check out https://github.com/Nerdmaster/superloud
+(fair warning: this code is not even remotely appropriate!).
 
 For the nitty-gritty, you can see all this stuff in the [Net::YAIL docs](http://ruby-irc-yail.nerdbucket.com/)
 page, as well as more complete documentation about the system.  For a complete bot,
