@@ -12,8 +12,11 @@ module LegacyEvents
   def prepend_handler(event, *procs, &block)
     raise "Cannot change handlers while threads are listening!" if @ioloop_thread
 
-    @log.warn "[DEPRECATED] - Net::YAIL#prepend_handler is deprecated as of 1.5.0 - please see documentation on the new " +
-        "event handling model methods - http://ruby-irc-yail.nerdbucket.com/"
+    unless $deprecated_prepend_warning
+      @log.warn "[DEPRECATED] - Net::YAIL#prepend_handler is deprecated as of 1.5.0 - please see documentation on the new " +
+          "event handling model methods - http://ruby-irc-yail.nerdbucket.com/"
+      $deprecated_prepend_warning = true
+    end
 
     # Allow blocks as well as procs
     if block_given?
