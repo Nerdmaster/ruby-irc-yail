@@ -10,6 +10,7 @@ require 'net/yail/magic_events'
 require 'net/yail/default_events'
 require 'net/yail/output_api'
 require 'net/yail/legacy_events'
+require 'net/yail/dispatch'
 
 # This tells us our version info.
 require 'net/yail/yail-version'
@@ -254,6 +255,7 @@ class YAIL
   include Net::IRCEvents::Defaults
   include Net::IRCOutputAPI
   include Net::IRCEvents::LegacyEvents
+  include Dispatch
 
   attr_reader(
     :me,                # Nickname on the IRC server
@@ -706,42 +708,6 @@ class YAIL
     end
 
     return type
-  end
-
-  # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses hacky
-  # :incoming_any event if event object is of IncomingEvent type.
-  def dispatch(event)
-    # Add all before-callback stuff to our chain
-    chain = []
-    chain.push @before_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
-    chain.push @before_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
-    chain.push @before_filters[event.type]
-    chain.flatten!
-    chain.compact!
-
-    # Run each filter in the chain, exiting early if event was handled
-    for filter in chain
-      filter.call(event)
-      return if event.handled?
-    end
-
-    # Legacy handler - return if true, since that's how the old system works - EXCEPTION for outgoing events, since
-    # the old system didn't allow the outgoing "core" code to be skipped!
-    if true == legacy_process_event(event)
-      return unless Net::YAIL::OutgoingEvent === event
-    end
-
-    # Add new callback and all after-callback stuff to a new chain
-    chain = []
-    chain.push @callback[event.type]
-    chain.push @after_filters[event.type]
-    chain.push @after_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
-    chain.push @after_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
-    chain.flatten!
-    chain.compact!
-
-    # Run all after-filters blindly - none can affect callback, so after-filters can't set handled to true
-    chain.each {|filter| filter.call(event)}
   end
 
   # Handles magic listener setup methods: on_xxx, hearing_xxx, heard_xxx, saying_xxx, and said_xxx
