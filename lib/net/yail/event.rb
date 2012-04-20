@@ -38,19 +38,28 @@ class YAIL
 
     # Cheesy shortcut to @handled in "boolean" form
     def handled?; return @handled; end
+
+    def event_class
+      return "base"
+    end
+
+    def type
+      return ("%s_%s" % [event_class, @type]).to_sym
+    end
   end
 
   # The outgoing event class - outgoing events haven't got much in
   # common, so this class is primarily to facilitate the new system.
   class OutgoingEvent < BaseEvent
     # Outgoing events in our system are always :outgoing_xxx
-    def type
-      return :"outgoing_#{@type.to_s}"
+    def event_class
+      return "outgoing"
     end
   end
 
   # Custom event is just a base event that doesn't crash when accessing type :)
   class CustomEvent < BaseEvent
+    def event_class; return "custom"; end
     def type; return @type; end
   end
 
@@ -95,7 +104,9 @@ class YAIL
     end
 
     # Incoming events in our system are always :incoming_xxx
-    def type; return :"incoming_#{@type.to_s}"; end
+    def event_class
+      return "incoming"
+    end
 
     # Effectively our event "factory" - uses Net::YAIL::MessageParser and returns an event
     # object - usually just one, but TODO: some lines actually contain multiple messages.  When
