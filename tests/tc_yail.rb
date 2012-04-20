@@ -241,4 +241,50 @@ class YailSessionTest < Test::Unit::TestCase
       assert_equal 'Quit: Bye byes', @quit[:message]
     end
   end
+
+  # Verifies that chains are broken properly for before filters and the callback, but not for after filters
+  def test_chain_breaking
+    @msg = Hash.new(0)
+
+    # First call means last filter - this one proves that the last one did or didn't run
+    @yail.hearing_msg { |e| @msg[:before_last] += 1; e.handled! if e.message == "quit 2" }
+
+    # Second call means first filter - this one actually allows or skips all other filters and callbacks
+    @yail.hearing_msg { |e| e.handled! if e.message == "quit 1" }
+
+    # Actual callback - this is hit as long as a before filter didn't stop the chain
+    @yail.on_msg      { |e| @msg[:callback] += 1; e.handled! }
+
+    # After filters never stop the chain
+    @yail.heard_msg   { |e| @msg[:after_msg] += 1; e.handled! }
+    @yail.heard_msg   { |e| @msg[:after_msg] += 1; e.handled! }
+    @yail.heard_msg   { |e| @msg[:after_msg] += 1; e.handled! }
+    @yail.heard_msg   { |e| @msg[:after_msg] += 1; e.handled! }
+
+    @yail.start_listening
+
+    wait_for_irc
+
+    # quit 1 means no filters are hit after the first
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :quit 1" do
+      assert_equal 0, @msg[:before_last]
+      assert_equal 0, @msg[:callback]
+      assert_equal 0, @msg[:after_msg]
+    end
+
+    # quit 2 means we hit the first before filter, but stopped after the second
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :quit 2" do
+      assert_equal 1, @msg[:before_last]
+      assert_equal 0, @msg[:callback]
+      assert_equal 0, @msg[:after_msg]
+    end
+
+    # After filters get run when before filters don't stop things, even though callback and after
+    # filters keep trying to break the chain
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :Well hello there, test!" do
+      assert_equal 1, @msg[:before_last]
+      assert_equal 1, @msg[:callback]
+      assert_equal 4, @msg[:after_msg]
+    end
+  end
 end
