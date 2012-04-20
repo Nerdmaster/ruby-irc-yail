@@ -2,22 +2,17 @@ module Net
 class YAIL
 
 module Dispatch
-  # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses hacky
-  # :incoming_any event if event object is of IncomingEvent type.
+  # Given an event, calls pre-callback filters, callback, and post-callback filters.  Uses
+  # *_any event, where * is the event's event_class value
   def dispatch(event)
-    # Add all before-callback stuff to our chain
-    chain = []
-    chain.push @before_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
-    chain.push @before_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
-    chain.push @before_filters[event.type]
-    chain.flatten!
-    chain.compact!
+    # We always have an "any" filter option, so we build the symbol first
+    any_filter_sym = (event.event_class + "_any").to_sym
 
-    # Run each filter in the chain, exiting early if event was handled
-    for filter in chain
-      filter.call(event)
-      return if event.handled?
-    end
+    before_any = @before_filters[any_filter_sym]
+    run_chain(event, :allow_halt => true, :handlers => [before_any, @before_filters[event.type]])
+
+    # Have to break here if before filters said so
+    return if event.handled?
 
     # Legacy handler - return if true, since that's how the old system works - EXCEPTION for outgoing events, since
     # the old system didn't allow the outgoing "core" code to be skipped!
@@ -26,16 +21,25 @@ module Dispatch
     end
 
     # Add new callback and all after-callback stuff to a new chain
-    chain = []
-    chain.push @callback[event.type]
-    chain.push @after_filters[event.type]
-    chain.push @after_filters[:incoming_any] if Net::YAIL::IncomingEvent === event
-    chain.push @after_filters[:outgoing_any] if Net::YAIL::OutgoingEvent === event
-    chain.flatten!
-    chain.compact!
+    after_any = @after_filters[any_filter_sym]
+    run_chain(event, :allow_halt => false, :handlers => [@callback[event.type], @after_filters[event.type], after_any])
+  end
 
-    # Run all after-filters blindly - none can affect callback, so after-filters can't set handled to true
-    chain.each {|filter| filter.call(event)}
+  # Consolidates all handlers passed in, flattening into a single array of handlers and
+  # removing any nils, then runs the methods on each event
+  def run_chain(event, opts = {})
+    handlers = opts[:handlers]
+    handlers.flatten!
+    handlers.compact!
+
+    allow_halt = opts[:allow_halt]
+
+    # Run each filter in the chain, exiting early if event was handled
+    for handler in handlers
+      handler.call(event)
+      return if event.handled? && true == allow_halt
+    end
+
   end
 end
 
