@@ -15,8 +15,9 @@ require 'net/yail/dispatch'
 # This tells us our version info.
 require 'net/yail/yail-version'
 
-# Finally, a real class to include!
+# Finally, real classes to include!
 require 'net/yail/event'
+require 'net/yail/handler'
 
 # If a thread crashes, I want the app to die.  My threads are persistent, not
 # temporary.
@@ -665,12 +666,12 @@ class YAIL
   # before the event callback has run, and can stop the event (and other filters) from running by calling the event's
   # end_chain() method.  Filters shouldn't do this very often!  Before-filtering can modify output text before the
   # event callback runs, ignore incoming events for a given user, etc.
-  def before_filter(event_type, method = nil, &block)
+  def before_filter(event_type, method = nil, conditions = {}, &block)
     filter = block_given? ? block : method
     if filter
       event_type = numeric_event_type_convert(event_type)
       @before_filters[event_type] ||= Array.new
-      @before_filters[event_type].unshift(filter)
+      @before_filters[event_type].unshift(Net::YAIL::Handler.new(filter, conditions))
     end
   end
 
@@ -678,22 +679,22 @@ class YAIL
   # longer a concept of multiple callbacks!  Use filters for that kind of functionality.  Think this way: the callback
   # is the action that takes place when an event hits.  Filters are for functionality related to the event, but not
   # the definitive callback - logging, filtering messages, stats gathering, ignoring messages from a set user, etc.
-  def set_callback(event_type, method = nil, &block)
+  def set_callback(event_type, method = nil, conditions = {}, &block)
     callback = block_given? ? block : method
     event_type = numeric_event_type_convert(event_type)
-    @callback[event_type] = callback
+    @callback[event_type] = Net::YAIL::Handler.new(callback, conditions)
     @callback.delete(event_type) unless callback
   end
 
   # Prepends the given block or method to the after_filters array for the given type.  After-filters are called after
   # the event callback has run, and cannot stop other after-filters from running.  Best used for logging or statistics
   # gathering.
-  def after_filter(event_type, method = nil, &block)
+  def after_filter(event_type, method = nil, conditions = {}, &block)
     filter = block_given? ? block : method
     if filter
       event_type = numeric_event_type_convert(event_type)
       @after_filters[event_type] ||= Array.new
-      @after_filters[event_type].unshift(filter)
+      @after_filters[event_type].unshift(Net::YAIL::Handler.new(filter, conditions))
     end
   end
 
@@ -742,13 +743,14 @@ class YAIL
 
     # Magic methods MUST have an arg or a block!
     filter_or_callback_method = block_given? ? block : args.shift
+    conditions = args.shift || {}
 
     # If we didn't match a magic method signature, or we don't have the expected parameters, call
     # parent's method_missing.  Just to be safe, we also return, in case YAIL one day subclasses
     # from something that handles some method_missing stuff.
     return super if method.nil? || event_type.nil? || args.length > 0
 
-    self.send(method, event_type, filter_or_callback_method)
+    self.send(method, event_type, filter_or_callback_method, conditions)
   end
 end
 

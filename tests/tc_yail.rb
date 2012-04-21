@@ -326,4 +326,67 @@ class YailSessionTest < Test::Unit::TestCase
       assert_equal 5, step
     end
   end
+
+  def test_conditional_filters
+    @msg = Hash.new(0)
+
+    # Conditional filters are really ugly when passing a block instead of a method, so let's
+    # at least try to make this look decent
+    hearing_food    = lambda { @msg[:food] += 1 }
+    not_hearing_bad = lambda { @msg[:not_bad] += 1 }
+    heard_nothing   = lambda { @msg[:nothing] += 1 }
+    heard_2         = lambda { @msg[:heard_2] += 1 }
+
+    # If the message looks like "food", the handler will be hit
+    @yail.hearing_msg(hearing_food, :if => lambda {|e| e.message =~ /food/})
+
+    # Unless the message looks like "bad", the handler will be hit
+    @yail.hearing_msg(not_hearing_bad, :unless => lambda {|e| e.message =~ /bad/})
+
+    # Verify after-filter is called, and hash conditions are respected
+    @yail.heard_msg(heard_nothing, :if => {:message => ""})
+
+    # Verify multiple hash conditions are anded
+    @yail.heard_msg(heard_2, :if => {:message => "bah", :pm? => true})
+
+    # GO GO GO
+    @yail.start_listening
+
+    wait_for_irc
+
+    # Food
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :this food is bad" do
+      assert_equal({:food => 1}, @msg)
+    end
+
+    # Good food!
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :this food is good!" do
+      assert_equal({:food => 1, :not_bad => 1}, @msg)
+    end
+
+    # Good drink
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :this drink is good!" do
+      assert_equal({:not_bad => 1}, @msg)
+    end
+
+    # Nothing, but not bad
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :" do
+      assert_equal({:not_bad => 1, :nothing => 1}, @msg)
+    end
+
+    # Private message for multiple hash test
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #{@yail.me} :bah" do
+      assert_equal({:not_bad => 1, :heard_2 => 1}, @msg)
+    end
+
+    # Private message without bah does *not* fire off multiple hash handler
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #{@yail.me} :hey there buddy" do
+      assert_equal({:not_bad => 1}, @msg)
+    end
+
+    # "bah" without being pm doesn't fire off handler, either
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :bah" do
+      assert_equal({:not_bad => 1}, @msg)
+    end
+  end
 end

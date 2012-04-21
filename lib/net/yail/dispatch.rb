@@ -26,7 +26,7 @@ module Dispatch
   end
 
   # Consolidates all handlers passed in, flattening into a single array of handlers and
-  # removing any nils, then runs the methods on each event
+  # removing any nils, then runs the methods on each event, respecting filter conditions
   def run_chain(event, opts = {})
     handlers = opts[:handlers]
     handlers.flatten!
@@ -34,7 +34,7 @@ module Dispatch
 
     allow_halt = opts[:allow_halt]
 
-    # Run each filter in the chain, exiting early if event was handled
+    # Run each filter in the chain if conditions are met, exiting early if event was handled
     for handler in handlers
       handler.call(event)
       return if event.handled? && true == allow_halt
