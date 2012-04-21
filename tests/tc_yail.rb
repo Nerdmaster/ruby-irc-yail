@@ -287,4 +287,43 @@ class YailSessionTest < Test::Unit::TestCase
       assert_equal 4, @msg[:after_msg]
     end
   end
+
+  # Verify that *_any filters are run appropriately and in order - before filter should be the
+  # first filter run, and after filter should be the last
+  def test_any_filters_and_filter_order
+    step = 1
+
+    # First we should hit the incoming "any" before filter
+    @yail.hearing_any do |e|
+      if e.type == :incoming_msg
+        assert_equal 1, step
+        step += 1
+      end
+    end
+
+    # Second, incoming message before filter
+    @yail.hearing_msg { |e| assert_equal 2, step; step += 1 }
+
+    # Third, the callback
+    @yail.on_msg      { |e| assert_equal 3, step; step += 1 }
+
+    # Fourth, incoming message after callback
+    @yail.heard_msg   { |e| assert_equal 4, step; step += 1 }
+
+    # Last, incoming "any" after filter
+    @yail.heard_any do |e|
+      if e.type == :incoming_msg
+        assert_equal 5, step
+      end
+    end
+
+    @yail.start_listening
+
+    wait_for_irc
+
+    mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :Well hello there, test!" do
+      # We should have no handlers hit more than once - step should be 5 still
+      assert_equal 5, step
+    end
+  end
 end
