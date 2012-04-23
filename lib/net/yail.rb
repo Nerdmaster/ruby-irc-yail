@@ -41,7 +41,7 @@ module Net
 #
 # YAIL at its core is an event handler with some logic specific to IRC socket messages.  BaseEvent
 # is the parent of all event objects.  An event is run through various pre-callback filters, a
-# single callback, and post-callback filters.  Up until the post-callback filters start, the handler
+# single callback, and post-callback filters.  Up until the callback is hit, the handler
 # "chain" can be stopped by calling the event's .handled! method.  It is generally advised against
 # doing this, as it will stop things like post-callback stats gathering and similar plugin-friendly
 # features, but it does make sense in certain situations (an "ignore user" module, for instance).
@@ -59,9 +59,12 @@ module Net
 # and filter is explained above (1 callback per event, many filters), but at their core they are
 # just code that handles some aspect of the event.
 #
-# All handlers require some block of code.  You can explicitly create a Proc object, use
-# Something.method, or just pass in a block.  The block yields the event object which will have
-# all relevant data for the event.  See the examples below for a basic idea.
+# Handler methods must receive a block of code.  This can be passed in as a simple Ruby block, or
+# manually created via Proc.new, lambda, Foo.method(:bar), etc.  The <tt>method</tt> parameter of
+# all the handler methods is optional so that, as mentioned, a block can be used instead of a Proc.
+#
+# The handlers, when fired, will yield the event object containing all relevant data for the event.
+# See the examples below for a basic idea.
 #
 # To register an event's callback, you have the following options:
 # * <tt>set_callback(event_type, method = nil, &block)</tt>: Sets the event type's callback, clobbering any
@@ -70,7 +73,7 @@ module Net
 #   The "xxx" must be replaced by the incoming event's short type name.  For example,
 #   <tt>on_welcome {|event| ...}</tt> would be used in place of <tt>set_callback(:incoming_welcome, xxx)</tt>.
 #
-# To register a before- or after-callback filter:
+# To register a before- or after-callback filter, the following methods are available:
 # * <tt>before_filter(event_type, method = nil, &block)</tt>: Sets a before-callback filter, adding it to
 #   the current list of before-callback filters for the given event type.
 # * <tt>after_filter(event_type, method = nil, &block)</tt>: Sets an after-callback filter, adding it to
