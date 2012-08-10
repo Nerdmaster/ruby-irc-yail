@@ -193,22 +193,6 @@ module LegacyEvents
 
       when :outgoing_begin_connection
         return handle(event.type, event.username, event.address, event.realname)
-
-      # Unknown line - if an incoming event, we need to log it as that shouldn't be able to happen,
-      # but we don't want to kill somebody's app for it.  An outgoing event that's part of the
-      # system should NEVER hit this, so we throw an error in that case.  Custom events just get
-      # handled with no arguments, to allow for things like :irc_loop.
-      else
-        case event
-          when Net::YAIL::IncomingEvent
-            @log.warn 'Unknown line: %s!' % event.raw.inspect
-            @log.warn "Please report this to the github repo at https://github.com/Nerdmaster/ruby-irc-yail/issues"
-            return handle(:incoming_miscellany, event.raw)
-          when Net::YAIL::OutgoingEvent
-            raise "Unknown outgoing event: #{event.inspect}"
-          else
-            handle(event.type)
-        end
     end
   end
 end
