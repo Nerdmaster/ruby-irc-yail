@@ -533,7 +533,7 @@ class YAIL
     return [@socket.gets] unless @ssl
 
     # SSL socket == return all lines available
-    return @socket.readpartial(Buffering::BLOCK_SIZE).split($/).collect {|message| message}
+    return @socket.readpartial(OpenSSL::Buffering::BLOCK_SIZE).split($/).collect {|message| message}
   end
 
   # Reads incoming data - should only be called by io_loop, and only when
