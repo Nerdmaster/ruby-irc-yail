@@ -1,6 +1,6 @@
 require 'rubygems/package_task'
 require 'rake/testtask'
-require 'lib/net/yail/yail-version'
+require './lib/net/yail/yail-version'
 spec = Gem::Specification.new do |s|
   s.platform          = Gem::Platform::RUBY
   s.name              = "net-yail"
