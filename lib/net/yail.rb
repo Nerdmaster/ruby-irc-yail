@@ -254,14 +254,14 @@ module Net
 #
 #     require 'rubygems'
 #     require 'net/yail'
-#     
+#
 #     irc = Net::YAIL.new(
 #       :address    => 'irc.someplace.co.uk',
 #       :username   => 'Frakking Bot',
 #       :realname   => 'John Botfrakker',
 #       :nicknames  => ['bot1', 'bot2', 'bot3']
 #     )
-#     
+#
 #     # Automatically join #foo when the server welcomes us
 #     irc.on_welcome {|event| irc.join("#foo") }
 #
@@ -271,7 +271,7 @@ module Net
 #
 #     # Loops forever until CTRL+C
 #     irc.start_listening!
-class YAIL 
+class YAIL
   include Net::IRCEvents::Magic
   include Net::IRCEvents::Defaults
   include Net::IRCOutputAPI
@@ -381,7 +381,7 @@ class YAIL
     else
       @log = Logger.new(options[:log_io] || STDERR)
       @log.level = Logger::WARN
- 
+
       if (options[:silent] || options[:loud])
         @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
       end
