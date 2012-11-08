@@ -109,6 +109,47 @@ the event name as part of the method.  They must be given a proc object or a blo
 * saying_xxx: Creates a before-filter on outgoing event xxx.  This is the same as calling before_filter(:outgoing_xxx)
 * said_xxx: Creates an after-filter on outgoing event xxx.  This is the same as calling after_filter(:outgoing_xxx)
 
+Conditional Filtering
+---------------------
+
+For some situations, you want your filter to only be called if a certain condition is met.  Enter conditional filtering!
+By using this exciting feature, you can set up handlers and callbacks which only trigger when certain conditions are
+met.  Be warned, though, this can get confusing....
+
+Conditions can be added to any filter method, but should **never** be used on the callback, since *there can be only one*.
+To add a filter, you simply supply a hash with a key of either `:if` or `:unless`, and a value which is either another
+hash of conditions, or a proc.
+
+If a proc is sent, it will be a method that is called and passed the event object.  If the proc returns true, an `:if`
+condition is met and un `:unless` condition is not met.  If a condition is not met, the filter is skipped entirely.
+
+If a hash is sent, each key is expected to be an attribute on the event object.  It's similar to a lambda where you
+return true if each attribute equals the value in the hash.  For instance, `:if => {:message => "food", :nick => "Simon"}`
+is the same as `:if => lambda {|e| e.message == "food" && e.nick == "Simon"}`.
+
+Example (very simple) filter conditions:
+
+```ruby
+###
+# NOTE: These were swiped from tests - "hearing_food", "not_hearing_bad", and "heard_nothing" are all lambda functions
+###
+
+# If the message looks like "food", the handler will be hit
+@irc.hearing_msg(hearing_food, :if => lambda {|e| e.message =~ /food/})
+
+# Unless the message looks like "bad", the handler will be hit
+@irc.hearing_msg(not_hearing_bad, :unless => lambda {|e| e.message =~ /bad/})
+
+# If the message is completely empty, this handler will be hit
+@irc.heard_msg(heard_nothing, :if => {:message => ""})
+
+# Multiple handler conditions are "ANDed" - that is they must all be true for the :if to succeed or the :unless to
+# fail.  We do a block here instead of a proc to see how it looks.
+@irc.heard_msg(:if => {:message => "bah", :pm? => true}) do
+  # Message was "bah" and a pm!
+end
+```
+
 Features of YAIL:
 ========
 

@@ -88,6 +88,23 @@ module Net
 # * <tt>said_xxx(method = nil, &block)</tt>: Adds an after-callback filter for the given outgoing event
 #   type, such as <tt>said_act {|event| ...}</tt>
 #
+# ===Conditional Filtering
+#
+# For some situations, you want your filter to only be called if a certain condition is met.  Enter conditional filtering!
+# By using this exciting feature, you can set up handlers and callbacks which only trigger when certain conditions are
+# met.  Be warned, though, this can get confusing....
+#
+# Conditions can be added to any filter method, but should **never** be used on the callback, since *there can be only one*.
+# To add a filter, you simply supply a hash with a key of either `:if` or `:unless`, and a value which is either another
+# hash of conditions, or a proc.
+#
+# If a proc is sent, it will be a method that is called and passed the event object.  If the proc returns true, an `:if`
+# condition is met and un `:unless` condition is not met.  If a condition is not met, the filter is skipped entirely.
+#
+# If a hash is sent, each key is expected to be an attribute on the event object.  It's similar to a lambda where you
+# return true if each attribute equals the value in the hash.  For instance, `:if => {:message => "food", :nick => "Simon"}`
+# is the same as `:if => lambda {|e| e.message == "food" && e.nick == "Simon"}`.
+#
 # ==Incoming events
 #
 # *All* incoming events will have, at the least, the following methods:
