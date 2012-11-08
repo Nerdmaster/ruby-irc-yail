@@ -335,7 +335,6 @@ class YailSessionTest < Test::Unit::TestCase
     hearing_food    = lambda { @msg[:food] += 1 }
     not_hearing_bad = lambda { @msg[:not_bad] += 1 }
     heard_nothing   = lambda { @msg[:nothing] += 1 }
-    heard_2         = lambda { @msg[:heard_2] += 1 }
 
     # If the message looks like "food", the handler will be hit
     @yail.hearing_msg(hearing_food, :if => lambda {|e| e.message =~ /food/})
@@ -346,8 +345,11 @@ class YailSessionTest < Test::Unit::TestCase
     # Verify after-filter is called, and hash conditions are respected
     @yail.heard_msg(heard_nothing, :if => {:message => ""})
 
-    # Verify multiple hash conditions are anded
-    @yail.heard_msg(heard_2, :if => {:message => "bah", :pm? => true})
+    # Verify multiple hash conditions are anded - do it with a block just so we can see how
+    # wonderfully bad it looks
+    @yail.heard_msg(:if => {:message => "bah", :pm? => true}) do
+      @msg[:heard_2] += 1
+    end
 
     # GO GO GO
     @yail.start_listening
