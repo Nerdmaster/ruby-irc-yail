@@ -29,30 +29,37 @@ page, as well as more complete documentation about the system.  For a complete b
 check out the IRCBot source code as well as the various examples found in the github
 project or in the gem's examples directory.  Below is just a very simple example:
 
-    require 'rubygems'
-    require 'net/yail'
+```ruby
+require 'rubygems'
+require 'net/yail'
 
-    irc = Net::YAIL.new(
-      :address    => 'irc.someplace.co.uk',
-      :username   => 'Frakking Bot',
-      :realname   => 'John Botfrakker',
-      :nicknames  => ['bot1', 'bot2', 'bot3']
-    )
+irc = Net::YAIL.new(
+  :address    => 'irc.someplace.co.uk',
+  :username   => 'Frakking Bot',
+  :realname   => 'John Botfrakker',
+  :nicknames  => ['bot1', 'bot2', 'bot3']
+)
 
-    # Register a proc callback
-    irc.on_welcome proc { |event| irc.join('#foo') }
+# Register a proc callback
+irc.on_welcome proc { |event| irc.join('#foo') }
 
-    # Register a block
-    irc.on_invite { |event| irc.join(event.channel) }
+# Register a block
+irc.on_invite { |event| irc.join(event.channel) }
 
-    # Another way to register a block - note that this clobbers the prior callback
-    irc.set_callback(:incoming_invite) { |event| irc.join(event.channel) }
+# Another way to register a block - note that this clobbers the prior callback
+irc.set_callback(:incoming_invite) { |event| irc.join(event.channel) }
 
-    # Filter for all incoming pings so we can log them
-    irc.hearing_ping {|event| $stderr.puts event.inspect}
+# Filter for all incoming pings so we can log them
+irc.hearing_ping {|event| $stderr.puts event.inspect}
 
-    # Loops forever here until CTRL+C is hit.
-    irc.start_listening!
+# Filter condition: if the message is a pm, ignore it by forcibly ending the event filter chain
+irc.hearing_message(:if => {:pm? => true}) do |event|
+  event.handle!
+end
+
+# Loops forever here until CTRL+C is hit.
+irc.start_listening!
+```
 
 Now we've built a simple IRC listener that will connect to a (probably
 invalid) network, identify itself, and sit around waiting for the welcome
