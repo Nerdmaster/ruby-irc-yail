@@ -1,3 +1,40 @@
+1.6
+===
+
+This is primarily a bugfix release, but it's been so long since 1.5 that people will think I've
+done a ton of work if I call it 1.6.  Plus there's one minor new feature that doesn't suck.
+
+New
+---
+
+* Default documentation output is now sdoc, which is nice, instead of the new "darkfish" garbage
+  theme rdoc uses by default.  Not to be a jerk, but WOW, GUYS.  Really, *wow*.
+  * Seriously, I even provided a patch to sdoc to make it work better for me because I hated that
+    theme so very much.
+* CONDITIONAL FILTERS OMFG - see README for info here, but basically this allows an `:if` or
+  `:unless` to be specified for filters
+
+Changes
+-------
+
+* Loudbot removed completely due to awesome level of inappropriate code.  The standalone project
+  is still referenced in the README, so if you love SUPERLOUD (and I know you do), it's still easy
+  to find the source.
+* Better testing to ensure a more wholesome, quality product for you *and* your loved ones
+* All dispatch functionality was moved into its own module in an attempt to make the core yail.rb
+  file feel cleaner, and try (in vain) to separate the YAIL library's concerns out slightly.
+
+Fixes
+-----
+
+* Various Ruby and Rake compatibility changes
+* No more bazillions of warnings on use of deprecated prepend_handler method.  Yay.
+* A little bit of back-end clean-up to make future changes easier
+* Using "unknown" outgoing events no longer causes a crash (DOH)
+* Trying to use SSL should not *crash* anymore (BIGGER DOH)
+* There's like a fix to make stuff suck less on Ruby 1.9.x and it's totally rad
+
+
 Version 1.5
 ===========
 
