@@ -53,6 +53,12 @@ module Magic
     privmsg(event.target, "\001ACTION #{event.message}\001")
   end
 
+  # WHOIS - here because first parameter might be the nick and might be the optional server
+  def magic_out_whois(event)
+    string = "WHOIS %s%s" % [event.server.to_s.empty? ? "" : event.server, event.nick]
+    raw string
+  end
+
 end
 
 end

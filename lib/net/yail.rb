@@ -495,6 +495,9 @@ class YAIL
     set_callback :outgoing_ctcp, self.method(:magic_out_ctcp)
     set_callback :outgoing_act, self.method(:magic_out_act)
 
+    # WHOIS is tricky due to how weird its argument positioning is, so can't use create_command, either
+    set_callback :outgoing_whois, self.method(:magic_out_whois)
+
     # All PRIVMSG events eventually hit this - it's a legacy thing, and kinda dumb, but there you
     # have it.  Just sends a raw PRIVMSG out to the socket.
     create_command :privmsg, "PRIVMSG :target ::message", :target, :message

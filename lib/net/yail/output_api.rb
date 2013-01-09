@@ -39,6 +39,15 @@ module IRCOutputAPI
     buffer_output Net::YAIL::OutgoingEvent.new(:type => :act, :target => target, :message => message)
   end
 
+  # WHOIS is tricky - it can optionally take a :target parameter, which is the *first* parameter
+  # if it's present, rather than added to the parameter list.  BAD SPECIFICATIONS!  NO BISCUIT!
+  # (If it were more standard, we could just use create_command)
+  #
+  # Note that "nick" can actually be a comma-separated list of masks for whois querying.
+  def whois(nick, server = nil)
+    dispatch Net::YAIL::OutgoingEvent.new(:type => :whois, :nick => nick, :server => server)
+  end
+
   # Creates an output command and its handler.  output_base is a template of the command without
   # any conditional arguments (for simple commands this is the full template).  args is a list of
   # argument symbols to determine how the event is built and handled.  If an argument symbol is
