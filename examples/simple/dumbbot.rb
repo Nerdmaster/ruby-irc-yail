@@ -10,15 +10,19 @@ require 'getopt/long'
 opt = Getopt::Long.getopts(
   ['--network',  Getopt::REQUIRED],
   ['--nick', Getopt::REQUIRED],
+  ['--port', Getopt::REQUIRED],
   ['--loud', Getopt::BOOLEAN]
 )
 
-irc = Net::YAIL.new(
+opts = {
   :address    => opt['network'],
-  :username   => 'Frakking Bot',
+  :username   => 'FrakkingBot',
   :realname   => 'John Botfrakker',
-  :nicknames  => [opt['nick']]
-)
+  :nicknames  => [opt['nick']],
+}
+opts[:port] = opt['port'] if opt['port']
+
+irc = Net::YAIL.new(opts)
 
 irc.log.level = Logger::DEBUG if opt['loud']
 
