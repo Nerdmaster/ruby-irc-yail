@@ -10,13 +10,13 @@ module Defaults
   # quitting may be fine, but for something else, we may want to prompt a
   # user or try again in 20 minutes or something.  Note that we only fail
   # when the adapter hasn't gotten logged in yet - an attempt at changing
-  # nick after registration (welcome message) just generates a report.
+  # nick after registration (welcome message) just generates a log message.
   #
   # TODO: This should really not even be here.  Client should have full control over whether or not
   # they want this.  Base IRC bot class should have this, but not the core YAIL lib.
   def _nicknameinuse(event)
     event.message =~ /^(\S+)/
-    report "Nickname #{$1} is already in use."
+    @log.warn "Nickname #{$1} is already in use."
 
     if (!@registered)
       begin
@@ -24,11 +24,11 @@ module Defaults
         if (nextnick != nil)
           nick nextnick
         else
-          report '*** All nicknames in use. ***'
+          @log.error '*** All nicknames in use. ***'
           raise ArgumentError.new("All nicknames in use")
         end
       rescue
-        report '*** Nickname selection error. ***'
+        @log.error '*** Nickname selection error. ***'
         raise
       end
     end
@@ -40,10 +40,10 @@ module Defaults
   def _namreply(event)
     event.message =~ /^(@|\*|=) (\S+) :?(.+)$/
     channeltype = {'@' => 'Secret', '*' => 'Private', '=' => 'Normal'}[$1]
-    report "{#{$2}} #{channeltype} channel nickname list: #{$3}"
+    @log.info "{#{$2}} #{channeltype} channel nickname list: #{$3}"
     @nicklist = $3.split(' ')
     @nicklist.collect!{|name| name.sub(/^\W*/, '')}
-    report "First nick: #{@nicklist[0]}"
+    @log.info "First nick: #{@nicklist[0]}"
   end
 
 end

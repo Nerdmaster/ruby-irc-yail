@@ -721,7 +721,8 @@ class YAIL
   # Reports may not get printed in the proper order since I scrubbed the
   # IRCSocket report capturing, but this is way more straightforward to me.
   def report(*lines)
-    lines.each {|line| $stdout.puts "(#{Time.now.strftime('%H:%M.%S')}) #{line}"}
+    @log.warn '[DEPRECATED] - Net::YAIL#report is deprecated and will be removed in 2.0 - use the logger (e.g., "@irc.log.info") instead'
+    lines.each {|line| @log.info line}
   end
 
   # Converts events that are numerics into the internal "incoming_numeric_xxx" format
