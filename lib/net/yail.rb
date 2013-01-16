@@ -380,7 +380,7 @@ class YAIL
       @log = options[:log]
     else
       @log = Logger.new(options[:log_io] || STDERR)
-      @log.level = Logger::WARN
+      @log.level = Logger::INFO
 
       if (options[:silent] || options[:loud])
         @log.warn '[DEPRECATED] - passing :silent and :loud options to constructor are deprecated as of 1.4.1'
