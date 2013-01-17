@@ -245,6 +245,7 @@ module Net
 #   If <tt>server</tt> is present, the request is forwarded to the given server.
 # * <tt>invite(nick, channel)</tt>: Invites a user to the given channel.
 # * <tt>kick(nick, channel, [message])</tt>: "KICK :channel :nick", :nick, :channel, :reason, " ::reason"
+# * <tt>whois(nick, [server]): Issues a WHOIS command for the given nickname with an optional server.
 #
 # =Simple Example
 #
