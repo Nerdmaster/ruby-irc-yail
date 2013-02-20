@@ -189,7 +189,7 @@ module LegacyEvents
         return handle(event.type, event.nick, event.channel)
 
       when :outgoing_kick
-        return handle(event.type, event.nick, event.channel, event.reason)
+        return handle(event.type, event.nick, event.channel, event.message)
 
       when :outgoing_begin_connection
         return handle(event.type, event.username, event.address, event.realname)

@@ -55,12 +55,13 @@ class YailSessionTest < Test::Unit::TestCase
       @notices.push({:from => f, :nick => actor, :target => target, :message => message})
     end
 
-    @yail.prepend_handler(:incoming_ping) { |message|                        @ping_message = message; false }
-    @yail.prepend_handler(:incoming_quit) { |f, actor, message|              @quit = {:full => f, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_ping) { |message|                     @ping_message = message; false }
+    @yail.prepend_handler(:incoming_quit) { |f, actor, message|           @quit = {:full => f, :nick => actor, :message => message}; false }
     @yail.prepend_handler(:outgoing_join) { |channel, pass|               @out_join = {:channel => channel, :password => pass}; false }
-    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, message|     @privmsg = {:channel => channel, :nick => actor, :message => message}; false }
-    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, message|     @ctcp = {:channel => channel, :nick => actor, :message => message}; false }
-    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, message|     @act = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:outgoing_kick) { |nick, channel, reason|       @out_kick = {:channel => channel, :nick => nick, :message => reason}; false }
+    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, message|  @privmsg = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, message|  @ctcp = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, message|  @act = {:channel => channel, :nick => actor, :message => message}; false }
   end
 
   # "New" handlers are set up (the 1.5+ way of doing things) here to perform tests in common with
@@ -110,6 +111,7 @@ class YailSessionTest < Test::Unit::TestCase
     @yail.heard_ping  { |event| @ping_message = event.message }
     @yail.on_quit     { |event| @quit = {:full => event.fullname, :nick => event.nick, :message => event.message} }
     @yail.saying_join { |event| @out_join = {:channel => event.channel, :password => event.password} }
+    @yail.saying_kick { |event| @out_kick = {:channel => event.channel, :nick => event.nick, :message => event.message} }
     @yail.on_msg      { |event| @privmsg = {:channel => event.channel, :nick => event.nick, :message => event.message} }
     @yail.on_ctcp     { |event| @ctcp = {:channel => event.channel, :nick => event.nick, :message => event.message} }
     @yail.on_act      { |event| @act = {:channel => event.channel, :nick => event.nick, :message => event.message} }
@@ -193,6 +195,19 @@ class YailSessionTest < Test::Unit::TestCase
     assert_equal "#foosball", @out_join[:channel]
     assert_equal "pass", @out_join[:password]
     assert_equal ['#foosball'], @channels
+
+    # Kick somebody
+    @yail.kick("Nerdminion", "#foosball")
+    wait_for_irc
+    assert_equal("#foosball", @out_kick[:channel])
+    assert_equal("Nerdminion", @out_kick[:nick])
+
+    # Kick with message
+    @yail.kick("Nerdminion", "#foosball", "Because you're a bad, bad man")
+    wait_for_irc
+    assert_equal("#foosball", @out_kick[:channel])
+    assert_equal("Nerdminion", @out_kick[:nick])
+    assert_equal("Because you're a bad, bad man", @out_kick[:message])
 
     # Mock some chatter to verify PRIVMSG info
     mock_message ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :#{@yail.me}: Welcome!" do
@@ -332,9 +347,9 @@ class YailSessionTest < Test::Unit::TestCase
 
     # Conditional filters are really ugly when passing a block instead of a method, so let's
     # at least try to make this look decent
-    hearing_food    = lambda { @msg[:food] += 1 }
-    not_hearing_bad = lambda { @msg[:not_bad] += 1 }
-    heard_nothing   = lambda { @msg[:nothing] += 1 }
+    hearing_food    = lambda { |e| @msg[:food] += 1 }
+    not_hearing_bad = lambda { |e| @msg[:not_bad] += 1 }
+    heard_nothing   = lambda { |e| @msg[:nothing] += 1 }
 
     # If the message looks like "food", the handler will be hit
     @yail.hearing_msg(hearing_food, :if => lambda {|e| e.message =~ /food/})
