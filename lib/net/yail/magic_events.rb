@@ -18,8 +18,7 @@ module Magic
   # We were welcomed, so we need to set up initial nickname and set that we
   # registered so nick change failure doesn't cause DEATH!
   def magic_welcome(event)
-    # TODO: Ditch this call to report - move to report lib if necessary
-    report "#{event.from} welcome message: #{event.message}"
+    @log.info "#{event.from} welcome message: #{event.message}"
     if (event.message =~ /(\S+)!\S+$/)
       @me = $1
     elsif (event.message =~ /(\S+)$/)
@@ -51,6 +50,12 @@ module Magic
   # CTCP ACTION
   def magic_out_act(event)
     privmsg(event.target, "\001ACTION #{event.message}\001")
+  end
+
+  # WHOIS - here because first parameter might be the nick and might be the optional server
+  def magic_out_whois(event)
+    string = "WHOIS %s%s" % [event.server.to_s.empty? ? "" : event.server, event.nick]
+    raw string
   end
 
 end

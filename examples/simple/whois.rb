@@ -30,5 +30,23 @@ irc.log.level = Logger::DEBUG if opt['loud']
 irc.heard_welcome { |e| irc.join('#bots') }       # Filter - runs after the server's welcome message is read
 irc.on_invite     { |e| irc.join(e.channel) }     # Handler - runs on an invite message
 
+# WHOIS example (this could be useful for other numerics as well)
+data = {}
+irc.heard_join do |e|
+  data = {:nick => e.nick}
+  irc.whois(e.nick)
+end
+irc.heard_whoisuser do |e|
+  data[:name] = e.parameters[4]
+  data[:host] = e.parameters[2]
+end
+irc.heard_whoischannels do |e|
+  data[:channels] = e.parameters.last
+end
+irc.heard_endofwhois do |e|
+  irc.msg(data[:nick], "I know who you are, #{data[:nick]}")
+  irc.msg(data[:nick], data.inspect)
+end
+
 # Start the bot and enjoy the endless loop
 irc.start_listening!
