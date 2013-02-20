@@ -55,12 +55,12 @@ class YailSessionTest < Test::Unit::TestCase
       @notices.push({:from => f, :nick => actor, :target => target, :message => message})
     end
 
-    @yail.prepend_handler(:incoming_ping) { |message|                        @ping_message = message; false }
-    @yail.prepend_handler(:incoming_quit) { |f, actor, message|              @quit = {:full => f, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_ping) { |message|                     @ping_message = message; false }
+    @yail.prepend_handler(:incoming_quit) { |f, actor, message|           @quit = {:full => f, :nick => actor, :message => message}; false }
     @yail.prepend_handler(:outgoing_join) { |channel, pass|               @out_join = {:channel => channel, :password => pass}; false }
-    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, message|     @privmsg = {:channel => channel, :nick => actor, :message => message}; false }
-    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, message|     @ctcp = {:channel => channel, :nick => actor, :message => message}; false }
-    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, message|     @act = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_msg)  { |f, actor, channel, message|  @privmsg = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_ctcp) { |f, actor, channel, message|  @ctcp = {:channel => channel, :nick => actor, :message => message}; false }
+    @yail.prepend_handler(:incoming_act)  { |f, actor, channel, message|  @act = {:channel => channel, :nick => actor, :message => message}; false }
   end
 
   # "New" handlers are set up (the 1.5+ way of doing things) here to perform tests in common with
