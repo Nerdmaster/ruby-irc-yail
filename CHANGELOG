@@ -1,3 +1,13 @@
+1.6.2
+=====
+
+SSL fixed!  Again.  Yeah, so by "fixed", I probably mean to say, "I am a moron and some new bug will
+surely pop up again soon."
+
+If you use SSL regularly, let me know how THIS fix goes....
+
+(On the plus side, this time I tested it a little)
+
 1.6
 ===
 

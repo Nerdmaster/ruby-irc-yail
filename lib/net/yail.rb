@@ -2,6 +2,7 @@ require 'socket'
 require 'thread'
 require 'yaml'
 require 'logger'
+require 'openssl'
 
 # To make this library seem smaller, a lot of code has been split up and put
 # into semi-logical files.  I don't really like this hacky solution, but I
@@ -244,7 +245,7 @@ module Net
 #   contain a comma-separated list of channels, which will restrict the list to the given channels.
 #   If <tt>server</tt> is present, the request is forwarded to the given server.
 # * <tt>invite(nick, channel)</tt>: Invites a user to the given channel.
-# * <tt>kick(nick, channel, [message])</tt>: "KICK :channel :nick", :nick, :channel, :reason, " ::reason"
+# * <tt>kick(nick, channel, [message])</tt>: Kicks the given user from the given channel with an optional message
 # * <tt>whois(nick, [server]): Issues a WHOIS command for the given nickname with an optional server.
 #
 # =Simple Example
@@ -538,7 +539,6 @@ class YAIL
 
   # If user asked for SSL, this is where we set it all up
   def setup_ssl
-    require 'openssl'
     ssl_context = OpenSSL::SSL::SSLContext.new()
     ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
     @socket = OpenSSL::SSL::SSLSocket.new(@socket, ssl_context)
@@ -553,8 +553,10 @@ class YAIL
     # Simple non-ssl socket == return a single line
     return [@socket.gets] unless @ssl
 
-    # SSL socket == return all lines available
-    return @socket.readpartial(OpenSSL::Buffering::BLOCK_SIZE).split($/).collect {|message| message}
+    # SSL socket == return all lines available - but preserve newlines for servers that split
+    # up words!  Newlines tell us where commands end!
+    messages = @socket.readpartial(OpenSSL::Buffering::BLOCK_SIZE)
+    return messages.split(/(#{$/})/).each_slice(2).map(&:join)
   end
 
   # Reads incoming data - should only be called by io_loop, and only when
@@ -576,6 +578,20 @@ class YAIL
 
     # Chomp and push each message
     for message in messages
+      # Message must have one of \r or \n at the end of it, otherwise it's a partial command and
+      # we need to hang onto it to join it with the next message
+      if message !~ /[\r\n]+$/
+        @prepend_message ||= ""
+        @prepend_message += message.dup
+        next
+      end
+
+      # If we had a partial message recently, attach it to the new message and clear it out
+      if @prepend_message
+        message = @prepend_message + message
+        @prepend_message = nil
+      end
+
       message.chomp!
       @log.debug "+++INCOMING: #{message.inspect}"
 
