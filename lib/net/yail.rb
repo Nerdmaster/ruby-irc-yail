@@ -2,6 +2,7 @@ require 'socket'
 require 'thread'
 require 'yaml'
 require 'logger'
+require 'openssl'
 
 # To make this library seem smaller, a lot of code has been split up and put
 # into semi-logical files.  I don't really like this hacky solution, but I
@@ -538,7 +539,6 @@ class YAIL
 
   # If user asked for SSL, this is where we set it all up
   def setup_ssl
-    require 'openssl'
     ssl_context = OpenSSL::SSL::SSLContext.new()
     ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
     @socket = OpenSSL::SSL::SSLSocket.new(@socket, ssl_context)
