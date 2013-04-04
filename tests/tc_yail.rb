@@ -406,4 +406,33 @@ class YailSessionTest < Test::Unit::TestCase
       assert_equal({:not_bad => 1}, @msg)
     end
   end
+
+  def test_split_messages
+    # We have to set up a whole new YAIL for this since split messages only work on SSL
+    @yail = Net::YAIL.new(
+      :io => @mockirc, :address => "fake-irc.nerdbucket.com", :log => @log,
+      :nicknames => ["Bot"], :realname => "Net::YAIL", :username => "Username",
+      :use_ssl => true
+    )
+
+    @privmsg = []
+    @yail.on_msg { |event| @privmsg.push({:channel => event.channel, :nick => event.nick, :message => event.message}) }
+    @mockirc.add_partial_output ":Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :First line\n"
+    @mockirc.add_partial_output ":Nerdmaster!nerd@n"
+    @mockirc.add_partial_output "erdbucket.com PRIVMSG"
+    @mockirc.add_partial_output " #foosball :Second line\n:Nerdmaster!nerd@nerdbucket.com PRIVMSG #foosball :Third line\n"
+    @yail.start_listening
+    wait_for_irc
+
+    assert_equal(@privmsg.length, 3)
+
+    0.upto(2) do |idx|
+      assert_equal("Nerdmaster", @privmsg[idx][:nick])
+      assert_equal("#foosball", @privmsg[idx][:channel])
+    end
+
+    assert_equal("First line", @privmsg[0][:message])
+    assert_equal("Second line", @privmsg[1][:message])
+    assert_equal("Third line", @privmsg[2][:message])
+  end
 end
