@@ -553,8 +553,10 @@ class YAIL
     # Simple non-ssl socket == return a single line
     return [@socket.gets] unless @ssl
 
-    # SSL socket == return all lines available
-    return @socket.readpartial(OpenSSL::Buffering::BLOCK_SIZE).split($/).collect {|message| message}
+    # SSL socket == return all lines available - but preserve newlines for servers that split
+    # up words!  Newlines tell us where commands end!
+    messages = @socket.readpartial(OpenSSL::Buffering::BLOCK_SIZE)
+    return messages.split(/(#{$/})/).each_slice(2).map(&:join)
   end
 
   # Reads incoming data - should only be called by io_loop, and only when
