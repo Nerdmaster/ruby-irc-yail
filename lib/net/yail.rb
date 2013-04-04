@@ -576,6 +576,20 @@ class YAIL
 
     # Chomp and push each message
     for message in messages
+      # Message must have one of \r or \n at the end of it, otherwise it's a partial command and
+      # we need to hang onto it to join it with the next message
+      if message !~ /[\r\n]+$/
+        @prepend_message ||= ""
+        @prepend_message += message.dup
+        next
+      end
+
+      # If we had a partial message recently, attach it to the new message and clear it out
+      if @prepend_message
+        message = @prepend_message + message
+        @prepend_message = nil
+      end
+
       message.chomp!
       @log.debug "+++INCOMING: #{message.inspect}"
 
