@@ -46,6 +46,13 @@ class MockIRC
     return output
   end
 
+  # Hack for SSL mocking - it's expected tests will set the broken lines however we want them, so
+  # this just spits out what gets would have
+  def readpartial(size)
+    data = gets
+    return data || ""
+  end
+
   # Hack to let YAIL know if we have data to read
   def ready?
     return @output.empty? ? nil : true
@@ -159,5 +166,10 @@ class MockIRC
   # Sets up our internal string to add the given string arguments for a gets call to pull
   def add_output(*args)
     args.each {|arg| @output.push(arg + "\n")}
+  end
+
+  # Sets up our internal string to add a broken line (no newline character)
+  def add_partial_output(string)
+    @output.push(string)
   end
 end
