@@ -146,7 +146,7 @@ class IRCBot
 
   # Logs the requested lines using the internal logger - deprecated to push logger on people
   def report(*lines)
-    @log.warn '[DEPRECATED] - IRCBot#report is deprecated and will be removed in 2.0 - use the logger (e.g., "@bot.log.info") instead'
+    log.warn '[DEPRECATED] - IRCBot#report is deprecated and will be removed in 2.0 - use the logger (e.g., "@bot.log.info") instead'
     lines.each {|line| @irc.log.info line}
   end
 
