@@ -104,7 +104,7 @@ module LegacyEvents
 
       when :incoming_numeric
         # Lovely - I passed in a "nick" - which, according to spec, is NEVER part of a numeric reply
-        handle_numeric(event.numeric, event.servername, nil, event.target, event.message)
+        handle_numeric(event.numeric, event.from, nil, event.target, event.message)
 
       when :incoming_invite
         return handle(event.type, event.fullname, event.nick, event.channel)
@@ -166,9 +166,6 @@ module LegacyEvents
 
       when :outgoing_nick
         return handle(event.type, event.nick)
-
-      when :outgoing_user
-        return handle(event.type, event.username, event.hostname, event.servername, event.realname)
 
       when :outgoing_pass
         return handle(event.type, event.password)
