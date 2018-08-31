@@ -23,8 +23,9 @@ class MessageParser
   # Note that all regexes are non-greedy.  I'm scared of greedy regexes, sirs.
   USER        = /\S+?/
   # RFC suggested that a nick *had* to start with a letter, but that seems to
-  # not be the case.
-  NICK        = /[\w\d\\|`'^{}\]\[-]+?/
+  # not be the case.  Oh, and also, pretty much anything is allowed to be a
+  # nick it turns out, at least in practice.
+  NICK        = /[^! ]+?/
   HOST        = /\S+?/
   SERVERNAME  = /\S+?/
 

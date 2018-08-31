@@ -17,12 +17,12 @@ class MessageParserEventTest < Test::Unit::TestCase
   end
 
   def test_topic
-    event = Net::YAIL::IncomingEvent.parse(":Dude!dude@nerdbucket.com TOPIC #nerdtalk :31 August 2010 \357\277\275 Foo.")
+    event = Net::YAIL::IncomingEvent.parse(":\"Dudeföö!dude@nerdbucket.com TOPIC #nerdtalk :31 August 2010 \357\277\275 Foo.")
     assert_equal :incoming_topic_change, event.type
-    assert_equal 'Dude', event.nick
+    assert_equal '"Dudeföö', event.nick
     assert_equal "31 August 2010 \357\277\275 Foo.", event.message
     assert_equal '#nerdtalk', event.channel
-    assert_equal 'Dude!dude@nerdbucket.com', event.fullname
+    assert_equal '"Dudeföö!dude@nerdbucket.com', event.fullname
   end
 
   # Parsing of PRIVMSG messages
